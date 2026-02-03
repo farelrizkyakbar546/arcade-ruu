@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Karuu's Mini Games Paradise 💖✨🦋</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ffe5ec 0%, #ffc2d1 30%, #fb6f92 50%, #c7ceea 70%, #a8e6cf 100%);
+            background-size: 300% 300%;
+            animation: dreamyBG 20s ease infinite;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+        @keyframes dreamyBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .navbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 70px;
+            background: rgba(255,255,255,0.88);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,182,193,0.5);
+            box-shadow: 0 4px 20px rgba(107,91,149,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+        }
+        .nav-left, .nav-right { display: flex; align-items: center; gap: 20px; }
+        .back-home-btn {
+            background: linear-gradient(135deg, #6b5b95, #ff6b81);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+        .back-home-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(107,91,149,0.4);
+        }
+        .music-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .music-btn {
+            background: linear-gradient(135deg, #6b5b95 0%, #ff8e53 100%);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            min-width: 140px;
+            justify-content: center;
+        }
+        .music-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #6b5b95;
+        }
+        #volumeSlider {
+            width: 110px;
+            height: 6px;
+            -webkit-appearance: none;
+            background: linear-gradient(90deg, #6b5b95, #ff8e53);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+        #volumeSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: #ff6b81;
+            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .lobby-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 90px auto 40px;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 30px 0;
+            background: rgba(255,255,255,0.4);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(107,91,149,0.25);
+        }
+        .header h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 5.2rem;
+            background: linear-gradient(90deg, #ff6b81, #6b5b95, #4ECDC4, #ff6b81);
+            background-size: 400% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: sparkleTitle 8s linear infinite;
+            text-shadow: 0 4px 15px rgba(107,91,149,0.5);
+        }
+        @keyframes sparkleTitle { 0% { background-position: 0% center; } 100% { background-position: 400% center; } }
+        .header .subtitle { font-size: 1.45rem; color: #444; margin-top: 15px; font-weight: 500; }
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 35px;
+            margin: 50px 0;
+        }
+        .game-card {
+            perspective: 1200px;
+            height: 280px;
+            cursor: pointer;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%; height: 100%;
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            transform-style: preserve-3d;
+            border-radius: 28px;
+            box-shadow: 0 12px 35px rgba(107,91,149,0.25);
+            background: linear-gradient(145deg, #fff5f8, #f9f0ff);
+            border: 2px solid rgba(255,182,193,0.5);
+            overflow: hidden;
+        }
+        .game-card:hover .card-inner { transform: rotateY(12deg) rotateX(8deg) scale(1.08); }
+        .card-front {
+            position: absolute; inset:0;
+            backface-visibility: hidden;
+            display: flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+            padding: 35px 25px; text-align:center;
+        }
+        .card-front i {
+            font-size: 4.8rem;
+            color: #6b5b95;
+            filter: drop-shadow(0 6px 12px rgba(107,91,149,0.5));
+            transition: all 0.5s;
+        }
+        .game-card:hover .card-front i { color: #ff6b81; transform: scale(1.25) rotate(20deg); }
+        .card-front h3 { font-size: 1.85rem; color: #4a3b6e; font-weight: 700; margin: 12px 0 8px; }
+        .card-front p { font-size: 1.05rem; color: #555; line-height: 1.55; }
+        .floating-elements {
+            position: fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+        }
+        .float-item {
+            position: absolute;
+            animation: floatUp linear infinite;
+            will-change: transform, opacity;
+        }
+        .heart { color: rgba(255,107,129,0.75); font-size: 1.4rem; }
+        .star { color: rgba(255,215,0,0.85); font-size: 1.1rem; animation: twinkle 4s infinite; }
+        .butterfly { color: rgba(107,91,149,0.7); font-size: 1.6rem; animation: flutter 8s infinite; }
+        @keyframes floatUp { 0% { transform: translateY(120vh) rotate(0deg); opacity:0.9; } 100% { transform: translateY(-30vh) rotate(1080deg); opacity:0; } }
+        @keyframes twinkle { 0%,100% { opacity:0.7; transform:scale(1); } 50% { opacity:1; transform:scale(1.4); } }
+        @keyframes flutter { 0%,100% { transform:rotate(0deg); } 25% { transform:rotate(15deg); } 75% { transform:rotate(-15deg); } }
+        .modal { 
+            position: fixed; inset:0;
+            background: rgba(0,0,0,0.65); backdrop-filter: blur(8px);
+            display: flex; align-items:center; justify-content:center;
+            z-index: 999; opacity:0; visibility:hidden; transition: all 0.6s;
+        }
+        .modal.active { opacity:1; visibility:visible; }
+        .modal-content {
+            background: rgba(255,255,255,0.95); border-radius: 32px;
+            padding: 50px 40px; max-width: 500px; text-align:center;
+            box-shadow: 0 20px 70px rgba(107,91,149,0.5);
+            transform: scale(0.7); transition: transform 0.6s cubic-bezier(0.175,0.885,0.32,1.4);
+        }
+        .modal.active .modal-content { transform: scale(1); }
+        .modal h2 { font-size: 3rem; color: #ff6b81; margin-bottom: 20px; font-family: 'Dancing Script', cursive; }
+        .modal p { font-size: 1.2rem; color: #555; margin-bottom: 30px; }
+        .close-btn { 
+            background: linear-gradient(135deg, #6b5b95, #ff6b81); 
+            color:white; border:none;
+            padding: 14px 40px; border-radius: 50px; font-size:1.1rem; cursor:pointer; 
+        }
+        .confetti { position:fixed; inset:0; pointer-events:none; z-index:2; }
+        @media (max-width: 768px) {
+            .navbar { padding: 0 15px; height: 65px; }
+            .back-home-btn { padding: 8px 16px; font-size: 0.95rem; }
+            .music-btn { padding: 8px 14px; font-size: 0.9rem; min-width: 120px; }
+            #volumeSlider { width: 90px; }
+            .lobby-container { margin: 80px auto 60px; padding: 15px; }
+            .header h1 { font-size: 4rem; }
+            .games-grid { grid-template-columns: 1fr; gap: 30px; }
+            .game-card { height: 260px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <button class="back-home-btn" onclick="window.location.href='../index.html'">
+                <i class="fa-solid fa-arrow-left-long"></i> Memory Game
+            </button>
+        </div>
+        <div class="nav-right">
+            <div class="music-control">
+                <button id="musicToggle" class="music-btn">
+                    <i class="fa-solid fa-music"></i> <span id="musicStatus">Play Music</span>
+                </button>
+                <div class="volume-control">
+                    <i class="fa-solid fa-volume-down"></i>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="40">
+                    <i class="fa-solid fa-volume-up"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="floating-elements" id="floats"></div>
+    <canvas class="confetti" id="confettiCanvas"></canvas>
+
+    <!-- Welcome Modal -->
+    <div class="modal" id="welcomeModal">
+        <div class="modal-content">
+            <h2>Hi dear Karuu! 💕✨</h2>
+            <p>Welcome to your special birthday mini games collection!<br>Pick your favorite & have tons of fun~ 🦋🎮</p>
+            <button class="close-btn" id="closeModal">Let's Play!</button>
+        </div>
+    </div>
+
+    <div class="lobby-container">
+        <div class="header">
+            <h1>Karuu's Mini Games</h1>
+            <p class="subtitle">Choose your super cute & exciting adventure today, let's play together! 🎀🦄💖</p>
+        </div>
+
+        <div class="games-grid">
+
+            <div class="game-card" onclick="window.location.href='mini-games/feedthesnake/index.html'">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <i class="fa-solid fa-snake"></i>
+                        <h3>Feed The Snake</h3>
+                        <p>Help the snake eat!<br>Don't bump into your own tail~ 🐍</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="window.location.href='mini-games/shootit/index.html'">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <i class="fa-solid fa-gun"></i>
+                        <h3>Shoot It!</h3>
+                        <p>Pull back to Aim<br>& release to Shot!🏹🎯</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="window.location.href='mini-games/mixandmatch/index.html'">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <h3>Mix & Match</h3>
+                        <p>Match the creepy picture pairs!<br>Like memory but way more fun~ 
+🕷️ 🎃</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="window.location.href='mini-games/drivemad/index.html'">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <i class="fa-solid fa-car-side"></i>
+                        <h3>Drive Mad</h3>
+                        <p>Drive the car without falling off!<br>99 levels waiting to be cleared~ 🚗💨🔥</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card" onclick="window.location.href='mini-games/buildyourhouse/index.html'">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <i class="fa-solid fa-house-heart"></i>
+                        <h3>Build Your House</h3>
+                        <p>Tap empty to Build and tap House to Remove~ 🏠🌸💕</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="../music/music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        // ─── Music Control ───────────────────────────────────────────────────────────
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const musicStatus = document.getElementById('musicStatus');
+        const volumeSlider = document.getElementById('volumeSlider');
+
+        let musicPlaying = false;
+
+        function playBackgroundMusic() {
+            bgMusic.play()
+                .then(() => {
+                    musicPlaying = true;
+                    musicStatus.textContent = 'Pause Music';
+                    musicToggle.innerHTML = '<i class="fa-solid fa-pause"></i> Pause Music';
+                })
+                .catch(e => {
+                    console.log("Music play failed:", e);
+                    musicStatus.textContent = 'Play Music';
+                });
+        }
+
+        function pauseBackgroundMusic() {
+            bgMusic.pause();
+            musicPlaying = false;
+            musicStatus.textContent = 'Play Music';
+            musicToggle.innerHTML = '<i class="fa-solid fa-music"></i> Play Music';
+        }
+
+        function toggleBackgroundMusic() {
+            if (musicPlaying) pauseBackgroundMusic();
+            else playBackgroundMusic();
+        }
+
+        musicToggle.addEventListener('click', toggleBackgroundMusic);
+
+        volumeSlider.addEventListener('input', (e) => {
+            bgMusic.volume = e.target.value / 100;
+        });
+
+        // Autoplay attempt after first interaction
+        document.addEventListener('click', function initMusic() {
+            if (!musicPlaying) playBackgroundMusic();
+            document.removeEventListener('click', initMusic);
+        }, { once: true });
+
+        // ─── Floating Elements ───────────────────────────────────────────────────────
+        function createFloat(type = 'heart') {
+            const el = document.createElement('div');
+            el.className = 'float-item ' + type;
+            let icon = '';
+            if(type === 'heart') icon = '<i class="fa-solid fa-heart"></i>';
+            else if(type === 'star') icon = '<i class="fa-solid fa-star"></i>';
+            else icon = '<i class="fa-solid fa-dove"></i>';
+            el.innerHTML = icon;
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.top = Math.random() * -20 + 'vh';
+            el.style.animationDuration = (Math.random() * 12 + 15) + 's';
+            el.style.fontSize = (Math.random() * 1.6 + 1) + 'rem';
+            document.getElementById('floats').appendChild(el);
+            setTimeout(() => el.remove(), 25000);
+        }
+
+        setInterval(() => {
+            const rand = Math.random();
+            if(rand < 0.5) createFloat('heart');
+            else if(rand < 0.8) createFloat('star');
+            else createFloat('butterfly');
+        }, 500);
+
+        for(let i = 0; i < 18; i++) {
+            const types = ['heart','star','butterfly'];
+            createFloat(types[i % 3]);
+        }
+
+        // ─── Confetti & Welcome Modal ────────────────────────────────────────────────
+        const canvas = document.getElementById('confettiCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+
+        function createParticles(count = 120) {
+            for(let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * -canvas.height,
+                    size: Math.random() * 10 + 5,
+                    speedY: Math.random() * 4 + 2,
+                    speedX: Math.random() * 2 - 1,
+                    color: ['#ff6b81','#6b5b95','#4ECDC4','#ffe5ec','#fb6f92','#a8e6cf'][Math.floor(Math.random()*6)],
+                    rotation: Math.random() * 360,
+                    rotSpeed: Math.random() * 12 - 6,
+                    opacity: 1
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach((p, i) => {
+                ctx.save();
+                ctx.globalAlpha = p.opacity;
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                ctx.restore();
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.rotation += p.rotSpeed;
+                p.opacity -= 0.003;
+                if(p.y > canvas.height || p.opacity <= 0) particles.splice(i,1);
+            });
+        }
+
+        function animateConfetti() {
+            drawParticles();
+            if(particles.length > 0) requestAnimationFrame(animateConfetti);
+        }
+
+        window.addEventListener('load', () => {
+            createParticles();
+            animateConfetti();
+            document.getElementById('welcomeModal').classList.add('active');
+        });
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('welcomeModal').classList.remove('active');
+        });
+
+        document.getElementById('welcomeModal').addEventListener('click', (e) => {
+            if(e.target === document.getElementById('welcomeModal')) {
+                document.getElementById('welcomeModal').classList.remove('active');
+            }
+        });
+    </script>
+
+</body>
+</html>

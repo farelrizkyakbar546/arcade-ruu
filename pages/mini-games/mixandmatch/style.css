@@ -1,0 +1,469 @@
+@font-face {
+  font-family: "Creepy";
+  src: url("https://raw.githubusercontent.com/WebDevSimplified/Mix-Or-Match/master/Assets/Fonts/Creepy.woff?raw=true") format("woff"), url("https://raw.githubusercontent.com/WebDevSimplified/Mix-Or-Match/master/Assets/Fonts/Creepy.woff2?raw=true") format("woff2")
+}
+
+@font-face {
+  font-family: "Lunacy";
+  src: url("https://raw.githubusercontent.com/WebDevSimplified/Mix-Or-Match/master/Assets/Fonts/Lunacy.woff") format("woff"), url("https://raw.githubusercontent.com/WebDevSimplified/Mix-Or-Match/master/Assets/Fonts/Lunacy.woff2") format("woff2")
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100vh;
+  cursor: url("https://raw.githubusercontent.com/WebDevSimplified/Mix-Or-Match/master/Assets/Cursors/Ghost.cur"), auto;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(#9D5900, #3D2200);
+  padding: 10px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Tombol Back to Lobby - Mobile First */
+.back-to-lobby-container {
+  position: relative;
+  margin: 10px auto 20px;
+  display: flex;
+  justify-content: center;
+  z-index: 1000;
+  width: 100%;
+}
+
+.back-to-lobby-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: #FF6D00;
+  color: #3D2200;
+  text-decoration: none;
+  font-family: 'Creepy', serif;
+  font-size: 1.2em;
+  border-radius: 50px;
+  border: 3px solid #FFBB89;
+  box-shadow: 
+      0 4px 8px rgba(0, 0, 0, 0.5),
+      inset 0 0 15px rgba(255, 187, 137, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: url("https://raw.githubusercontent.com/WebDevSimplified/Mix-Or-Match/master/Assets/Cursors/GhostHover.cur"), auto;
+  animation: float 3s ease-in-out infinite;
+  min-width: 200px;
+}
+
+.back-to-lobby-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.7s;
+}
+
+.back-to-lobby-btn:hover::before {
+  left: 100%;
+}
+
+.back-to-lobby-btn:hover {
+  background-color: #FF8B33;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+      0 6px 12px rgba(0, 0, 0, 0.6),
+      0 0 20px rgba(255, 109, 0, 0.5),
+      inset 0 0 20px rgba(255, 187, 137, 0.5);
+  border-color: #FFD700;
+}
+
+.back-to-lobby-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.back-to-lobby-btn i {
+  font-size: 1.1em;
+  transition: transform 0.3s ease;
+}
+
+.back-to-lobby-btn:hover i {
+  transform: rotate(20deg) scale(1.2);
+  animation: ghostFloat 1.5s ease-in-out infinite;
+}
+
+/* Animasi untuk tombol */
+@keyframes float {
+  0%, 100% {
+      transform: translateY(0);
+  }
+  50% {
+      transform: translateY(-5px);
+  }
+}
+
+@keyframes ghostFloat {
+  0%, 100% {
+      transform: rotate(20deg) translateY(0);
+  }
+  50% {
+      transform: rotate(20deg) translateY(-5px);
+  }
+}
+
+/* Spider web efek */
+.back-to-lobby-btn::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background-image: 
+      radial-gradient(circle at 30% 30%, rgba(255, 187, 137, 0.2) 1px, transparent 2px),
+      radial-gradient(circle at 70% 70%, rgba(255, 187, 137, 0.2) 1px, transparent 2px),
+      radial-gradient(circle at 50% 20%, rgba(255, 187, 137, 0.2) 1px, transparent 2px);
+  background-size: 20px 20px;
+  border-radius: 55px;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+/* Title Responsive */
+.page-title {
+  color: #FF6D00;
+  font-family: Creepy, serif;
+  font-weight: normal;
+  text-align: center;
+  font-size: 3em; /* Diperkecil untuk mobile */
+  margin: 10px 0 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  word-wrap: break-word;
+  padding: 0 10px;
+}
+
+.overlay-text {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  color: #FF6D00;
+  font-family: Creepy, serif;
+  padding: 20px;
+  text-align: center;
+}
+
+.overlay-text-small {
+  font-size: 0.3em;
+  display: block;
+  margin-top: 10px;
+}
+
+.overlay-text.visible {
+  display: flex;
+  flex-direction: column;
+  animation: overlay-grow 500ms forwards;
+}
+
+@keyframes overlay-grow {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+    font-size: 0;
+  }
+  to {
+    background-color: rgba(0, 0, 0, .8);
+    font-size: 4em; /* Diperkecil untuk mobile */
+  }
+}
+
+.game-info-container {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.game-info {
+  font-family: Lunacy, serif;
+  color: #FFBB89;
+  font-size: 1.8em; /* Diperkecil untuk mobile */
+  text-align: center;
+  min-width: 120px;
+}
+
+.game-container {
+  display: grid;
+  grid-template-columns: repeat(2, auto); /* Default 2 kolom untuk mobile */
+  grid-gap: 8px;
+  margin: 10px;
+  justify-content: center;
+  perspective: 500px;
+}
+
+.card {
+  position: relative;
+  height: 100px; /* Diperkecil untuk mobile */
+  width: 70px;   /* Diperkecil untuk mobile */
+  margin: 0 auto;
+}
+
+.card:hover {
+  cursor: url("https://raw.githubusercontent.com/WebDevSimplified/Mix-Or-Match/master/Assets/Cursors/GhostHover.cur"), auto;
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  border-width: 1px;
+  border-style: solid;
+  transition: transform 500ms ease-in-out;
+}
+
+.card.visible .card-back {
+  transform: rotateY(-180deg);
+}
+
+.card.visible .card-front {
+  transform: rotateY(0)
+}
+
+.card.matched .card-value {
+  animation: dance 1s linear infinite 500ms;
+}
+
+@keyframes dance {
+  0%, 100%  {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-30deg);
+  }
+  75% {
+    transform: rotate(30deg);
+  }
+}
+
+.card-back {
+  background-color: black;
+  border-color: #FF6D00;
+}
+
+.card-front {
+  background-color: #FFBB89;
+  border-color: #333;
+  transform: rotateY(180deg);
+}
+
+.card-value {
+  transition: transform 100ms ease-in-out;
+  transform: scale(0.8); /* Diperkecil untuk card mobile */
+  max-width: 80%;
+  max-height: 80%;
+}
+
+.card-front:hover .card-value {
+  transform: scale(0.9);
+}
+
+.cob-web {
+  position: absolute;
+  width: 30px; /* Diperkecil untuk mobile */
+  height: 30px;
+  transition: width 100ms ease-in-out, height 100ms ease-in-out;
+}
+
+.card-face:hover .cob-web {
+  width: 35px;
+  height: 35px;
+}
+
+.cob-web-top-left {
+  transform: rotate(270deg);
+  top: 0;
+  left: 0;
+}
+
+.cob-web-top-right {
+  top: 0;
+  right: 0;
+}
+
+.cob-web-bottom-left {
+  transform: rotate(180deg);
+  bottom: 0;
+  left: 0;
+}
+
+.cob-web-bottom-right {
+  transform: rotate(90deg);
+  bottom: 0;
+  right: 0;
+}
+
+.spider {
+  align-self: flex-start;
+  transform: translateY(-5px);
+  transition: transform 100ms ease-in-out;
+  width: 40px;
+  height: auto;
+}
+
+.card-back:hover .spider {
+  transform: translateY(0)
+}
+
+/* Tablet Styles */
+@media (min-width: 600px) and (max-width: 900px) {
+  .page-title {
+    font-size: 4em;
+  }
+  
+  .game-info {
+    font-size: 2.5em;
+  }
+  
+  .game-container {
+    grid-template-columns: repeat(3, auto);
+    grid-gap: 10px;
+  }
+  
+  .card {
+    height: 130px;
+    width: 90px;
+  }
+  
+  .overlay-text.visible {
+    font-size: 6em;
+  }
+  
+  .back-to-lobby-btn {
+    font-size: 1.5em;
+    padding: 12px 24px;
+    min-width: 250px;
+  }
+}
+
+/* Desktop Styles */
+@media (min-width: 901px) {
+  .page-title {
+    font-size: 6em;
+  }
+  
+  .game-info {
+    font-size: 4em;
+  }
+  
+  .game-container {
+    grid-template-columns: repeat(4, auto);
+    grid-gap: 10px;
+    margin: 50px;
+  }
+  
+  .card {
+    height: 175px;
+    width: 125px;
+  }
+  
+  .overlay-text.visible {
+    font-size: 10em;
+  }
+  
+  .back-to-lobby-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    margin: 0;
+    justify-content: flex-start;
+  }
+  
+  .back-to-lobby-btn {
+    font-size: 1.5em;
+    padding: 12px 24px;
+    min-width: auto;
+  }
+}
+
+/* Landscape Mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .game-container {
+    grid-template-columns: repeat(4, auto);
+  }
+  
+  .card {
+    height: 80px;
+    width: 56px;
+  }
+  
+  .page-title {
+    font-size: 2.5em;
+    margin: 5px 0 10px;
+  }
+  
+  .game-info-container {
+    margin-bottom: 10px;
+  }
+  
+  .back-to-lobby-btn {
+    padding: 6px 12px;
+    font-size: 1em;
+    min-width: 180px;
+  }
+}
+
+/* Very Small Devices */
+@media (max-width: 350px) {
+  .page-title {
+    font-size: 2.5em;
+  }
+  
+  .game-info {
+    font-size: 1.5em;
+  }
+  
+  .card {
+    height: 85px;
+    width: 60px;
+  }
+  
+  .back-to-lobby-btn {
+    font-size: 1em;
+    padding: 8px 16px;
+    min-width: 180px;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .card-face:hover .cob-web,
+  .card-front:hover .card-value,
+  .card-back:hover .spider {
+    width: initial;
+    height: initial;
+    transform: initial;
+  }
+  
+  .back-to-lobby-btn:hover {
+    transform: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  }
+}

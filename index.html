@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- HAPUS SATU META VIEWPORT YANG DUPLICATE -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Memory Game - Birthday Gift</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap">
+</head>
+<body>
+    <div class="container">
+        <!-- Header with warm message -->
+        <header class="header">
+            <div class="heart-decoration">
+                <i class="fas fa-heart"></i>
+                <i class="fas fa-heart"></i>
+                <i class="fas fa-heart"></i>
+            </div>
+            <h1 class="title">Karuu's Memory Game</h1>
+            <p class="subtitle">Birthday Gift for <span class="sister-name">My Dear Karuu</span></p>
+            <p class="message">Find all matching pairs of your photos ❤️</p>
+            
+            <!-- Music Control -->
+            <div class="music-control">
+                <button id="musicToggle" class="music-btn">
+                    <i class="fas fa-music"></i> <span id="musicStatus">Play Music</span>
+                </button>
+                <div class="volume-control">
+                    <i class="fas fa-volume-down"></i>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="50">
+                    <i class="fas fa-volume-up"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Game info panel -->
+        <div class="game-info">
+            <div class="stats-container">
+                <div class="stat-box">
+                    <i class="fas fa-clock"></i>
+                    <div class="stat-content">
+                        <span class="stat-label">Time</span>
+                        <span class="stat-value" id="timer">0s</span>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <i class="fas fa-sync-alt"></i>
+                    <div class="stat-content">
+                        <span class="stat-label">Moves</span>
+                        <span class="stat-value" id="moves">0</span>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <i class="fas fa-check-double"></i>
+                    <div class="stat-content">
+                        <span class="stat-label">Matches</span>
+                        <span class="stat-value" id="matches">0/12</span>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <i class="fas fa-star"></i>
+                    <div class="stat-content">
+                        <span class="stat-label">Score</span>
+                        <span class="stat-value" id="score">1000</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="newGameBtn" class="btn btn-primary">
+                    <i class="fas fa-gamepad"></i> New Game
+                </button>
+                <button id="hintBtn" class="btn btn-secondary">
+                    <i class="fas fa-lightbulb"></i> Hint
+                </button>
+                <!-- TOMBOL BARU: Game Lobby -->
+                <button id="gameLobbyBtn" class="btn btn-special">
+                    <i class="fas fa-gamepad"></i> More Games
+                </button>
+            </div>
+        </div>
+
+        <!-- Game board -->
+        <div class="game-board" id="gameBoard">
+            <!-- Cards will be created by JavaScript -->
+        </div>
+
+        <!-- Win message -->
+        <div class="message-overlay" id="winMessage">
+            <div class="message-box">
+                <div class="confetti">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-heart"></i>
+                    <i class="fas fa-star"></i>
+                </div>
+                <h2>Congratulations! You Win! 🎉</h2>
+                <div class="score-summary">
+                    <p><i class="fas fa-clock"></i> Time: <span id="finalTime">0</span> seconds</p>
+                    <p><i class="fas fa-shoe-prints"></i> Moves: <span id="finalMoves">0</span> moves</p>
+                    <p><i class="fas fa-trophy"></i> Score: <span id="finalScore">100</span> points</p>
+                </div>
+                <p class="sister-message">Every photo is your cute emotions. Happy Birthday, Karuu! 💖</p>
+                <div class="message-buttons">
+                    <button id="playAgainBtn" class="btn btn-primary">Play Again</button>
+                    <button id="shareBtn" class="btn btn-secondary">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hint modal -->
+        <div class="message-overlay" id="hintModal">
+            <div class="message-box hint-box">
+                <h2><i class="fas fa-lightbulb"></i> How to Play Memory Game</h2>
+                <ul class="instructions">
+                    <li><i class="fas fa-mouse-pointer"></i> Click two cards to flip them open</li>
+                    <li><i class="fas fa-images"></i> Find matching photo pairs</li>
+                    <li><i class="fas fa-trophy"></i> Complete the game by finding all 12 pairs</li>
+                    <li><i class="fas fa-star"></i> Higher score for finishing faster with fewer moves</li>
+                    <li><i class="fas fa-heart"></i> These photos are Karuu's</li>
+                    <li><i class="fas fa-keyboard"></i> Keyboard shortcuts: H for Hint, R to Restart</li>
+                    <li><i class="fas fa-music"></i> Click music button to play/pause the song</li>
+                    <li><i class="fas fa-volume-up"></i> Use volume slider to adjust sound level</li>
+                </ul>
+                <p class="hint-tips"><i class="fas fa-lightbulb"></i> Tip: Try to remember the position of cards you've already opened!</p>
+                <button id="closeHintBtn" class="btn btn-primary">Got it, Thank You!</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Made with <i class="fas fa-heart heart-beat"></i> for Sister Karuu's birthday</p>
+            <p class="footer-note">Every memory with you is the most beautiful story ❤️</p>
+        </footer>
+    </div>
+
+    <!-- Audio for sound effects -->
+    <audio id="flipSound" src="https://assets.mixkit.co/sfx/preview/mixkit-card-flip-1998.mp3" preload="auto"></audio>
+    <audio id="matchSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+    <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-triumph-2000.mp3" preload="auto"></audio>
+    
+    <!-- Background music -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="music/music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script src="js/game.js"></script>
+</body>
+</html>

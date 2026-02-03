@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Feed The Snake</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: manipulation;
+      }
+
+      html,
+      body {
+        background-color: #000;
+        height: 100%;
+        overflow: hidden;
+        font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+      }
+
+      body {
+        background: #222;
+        background: radial-gradient(#333, #111);
+        background-position: center center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        color: #fff;
+        font: 100%/1.5 sans-serif;
+      }
+
+      /* Header - DIKECILKAN */
+      .game-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 15px; /* Dikurangi dari 15px 20px */
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        height: 60px; /* Tambahkan tinggi tetap */
+      }
+
+      .back-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 6px 12px; /* Dikurangi */
+        border-radius: 20px; /* Lebih kecil */
+        font-size: 12px; /* Lebih kecil */
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        height: 32px; /* Tinggi tetap */
+      }
+
+      .back-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+      }
+
+      .back-button:active {
+        transform: translateY(0);
+      }
+
+      .back-button svg {
+        width: 14px; /* Lebih kecil */
+        height: 14px;
+      }
+
+      .score-container {
+        text-align: center;
+        padding: 2px 0;
+      }
+
+      .score-label {
+        font-size: 10px; /* Lebih kecil */
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1px;
+      }
+
+      .score {
+        color: #fff;
+        font-size: 24px; /* Dikurangi dari 36px */
+        font-weight: bold;
+        text-shadow: 0 1px 5px rgba(255, 255, 255, 0.3);
+        line-height: 1;
+      }
+
+      .high-score {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 10px; /* Lebih kecil */
+        margin-top: 1px;
+      }
+
+      /* Game Container - Disesuaikan dengan navbar kecil */
+      .game-container {
+        position: fixed;
+        top: 60px; /* Sesuai tinggi navbar */
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 5px;
+      }
+
+      .stage {
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .tile {
+        background: rgba(0, 0, 0, 0.15);
+        position: absolute;
+        transition-property:
+          background,
+          box-shadow,
+          opacity,
+          transform
+        ;
+        transform: translateZ(0);
+        transition-duration: 3000ms;
+      }
+
+      .tile:before {
+        bottom: 0;
+        content: '';
+        height: 0;
+        left: 0;
+        margin: auto;
+        opacity: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 0;
+        transition: opacity 300ms;
+      }
+
+      .tile.path:before {
+        opacity: 1;
+      }
+
+      .tile.up:before {
+        border-bottom: 3px inset rgba(255, 255, 255, 0.15);
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+      }
+
+      .tile.down:before {
+        border-top: 3px inset rgba(255, 255, 255, 0.15);
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+      }
+
+      .tile.left:before { 
+        border-right: 3px inset rgba(255, 255, 255, 0.15);
+        border-top: 3px solid transparent;
+        border-bottom: 3px solid transparent;
+      }
+
+      .tile.right:before { 
+        border-left: 3px inset rgba(255, 255, 255, 0.15);
+        border-top: 3px solid transparent;
+        border-bottom: 3px solid transparent;
+      }
+
+      .tile.pressed {
+        background: rgba(0, 0, 0, 0.3);
+        box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
+        transition-duration: 0ms;
+      }
+
+      /* Controls - DIUBAH untuk lebih responsif */
+      .mobile-controls {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        left: 0;
+        right: 0;
+        justify-content: center;
+        align-items: center;
+        z-index: 50;
+      }
+
+      .control-pad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 8px;
+        width: 180px;
+        height: 180px;
+      }
+
+      .control-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        border-radius: 12px;
+        color: white;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.1s;
+        backdrop-filter: blur(10px);
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0.3);
+      }
+
+      .control-btn:active {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(0.95);
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+
+      .control-btn.up {
+        grid-column: 2;
+        grid-row: 1;
+      }
+
+      .control-btn.down {
+        grid-column: 2;
+        grid-row: 3;
+      }
+
+      .control-btn.left {
+        grid-column: 1;
+        grid-row: 2;
+      }
+
+      .control-btn.right {
+        grid-column: 3;
+        grid-row: 2;
+      }
+
+      /* Instructions */
+      .instructions {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.95);
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        max-width: 350px;
+        width: 90%;
+        z-index: 1000;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: none;
+      }
+
+      .instructions h2 {
+        color: #fff;
+        margin-bottom: 15px;
+        font-size: 20px;
+      }
+
+      .instructions p {
+        color: rgba(255, 255, 255, 0.8);
+        margin: 8px 0;
+        font-size: 14px;
+      }
+
+      .instructions button {
+        margin-top: 15px;
+        padding: 10px 25px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .instructions button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      }
+
+      /* Game Over */
+      .game-over {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.95);
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        max-width: 350px;
+        width: 90%;
+        z-index: 1000;
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: none;
+      }
+
+      .game-over h2 {
+        color: #ff6b6b;
+        font-size: 26px;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .game-over .final-score {
+        font-size: 36px;
+        color: #fff;
+        margin: 15px 0;
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+      }
+
+      .game-over .high-score {
+        font-size: 16px;
+        color: #4ecdc4;
+        margin-bottom: 20px;
+      }
+
+      .game-over button {
+        margin: 8px;
+        padding: 10px 25px;
+        border: none;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .game-over .restart-btn {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        color: white;
+      }
+
+      .game-over .lobby-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .game-over button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Pause Button - DIPINDAH ke dalam navbar */
+      .pause-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+      }
+
+      .pause-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+      }
+
+      .pause-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .game-header {
+          padding: 6px 10px;
+          height: 55px;
+        }
+        
+        .game-container {
+          top: 55px;
+        }
+        
+        .back-button {
+          padding: 5px 10px;
+          font-size: 11px;
+          height: 30px;
+        }
+        
+        .score {
+          font-size: 20px;
+        }
+        
+        .score-label {
+          font-size: 9px;
+        }
+        
+        .mobile-controls {
+          display: flex;
+        }
+        
+        .control-pad {
+          width: 160px;
+          height: 160px;
+        }
+        
+        .control-btn {
+          font-size: 18px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .game-header {
+          padding: 5px 8px;
+          height: 50px;
+        }
+        
+        .game-container {
+          top: 50px;
+        }
+        
+        .back-button {
+          padding: 4px 8px;
+          font-size: 10px;
+          height: 28px;
+        }
+        
+        .back-button svg {
+          width: 12px;
+          height: 12px;
+        }
+        
+        .score {
+          font-size: 18px;
+        }
+        
+        .score-label {
+          font-size: 8px;
+        }
+        
+        .high-score {
+          font-size: 9px;
+        }
+        
+        .pause-btn {
+          width: 28px;
+          height: 28px;
+        }
+        
+        .pause-btn svg {
+          width: 14px;
+          height: 14px;
+        }
+        
+        .control-pad {
+          width: 140px;
+          height: 140px;
+        }
+        
+        .control-btn {
+          font-size: 16px;
+        }
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        .mobile-controls {
+          display: none !important;
+        }
+      }
+
+      /* Touch area untuk swipe yang lebih besar */
+      .touch-area {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        display: none;
+      }
+
+      @media (max-width: 768px) {
+        .touch-area {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Game Header - NAVBAR KECIL -->
+    <div class="game-header">
+      <button class="back-button" onclick="goToLobby()">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+        </svg>
+        Lobby
+      </button>
+      
+      <div class="score-container">
+        <div class="score-label">Score</div>
+        <div class="score">0</div>
+        <div class="high-score">High: 0</div>
+      </div>
+      
+      <div class="pause-btn" onclick="togglePause()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path id="pause-icon" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Touch Area untuk Swipe -->
+    <div class="touch-area" id="touchArea"></div>
+
+    <!-- Game Container -->
+    <div class="game-container">
+      <div class="stage"></div>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div class="mobile-controls">
+      <div class="control-pad">
+        <div class="control-btn up" ontouchstart="handleMobileControl('up')" ontouchend="clearTouch()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+          </svg>
+        </div>
+        <div class="control-btn left" ontouchstart="handleMobileControl('left')" ontouchend="clearTouch()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+          </svg>
+        </div>
+        <div class="control-btn right" ontouchstart="handleMobileControl('right')" ontouchend="clearTouch()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+          </svg>
+        </div>
+        <div class="control-btn down" ontouchstart="handleMobileControl('down')" ontouchend="clearTouch()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="instructions" id="instructions">
+      <h2>How to Play</h2>
+      <p><strong>PC/Laptop:</strong> Use WASD or Arrow Keys</p>
+      <p><strong>Mobile:</strong> Swipe anywhere or use buttons</p>
+      <p>Eat food to grow and earn points</p>
+      <p>Avoid colliding with yourself!</p>
+      <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div class="game-over" id="gameOver">
+      <h2>Game Over!</h2>
+      <div class="final-score" id="finalScore">0</div>
+      <div class="high-score" id="gameOverHighScore">High Score: 0</div>
+      <div>
+        <button class="restart-btn" onclick="restartGame()">Play Again</button>
+        <button class="lobby-btn" onclick="goToLobby()">Back to Lobby</button>
+      </div>
+    </div>
+
+    <script>
+      /*================================================
+      
+      Global Variables & Utilities
+      
+      ================================================*/
+      
+      let g = {};
+      let isPaused = false;
+      let isGameOver = false;
+      let highScore = localStorage.getItem('snakeHighScore') || 0;
+      let touchStartX = 0;
+      let touchStartY = 0;
+      let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      let lastSwipeTime = 0;
+      const SWIPE_COOLDOWN = 100; // ms
+      
+      // Update high score display
+      document.querySelector('.high-score').textContent = `High: ${highScore}`;
+      
+      /*================================================
+      
+      Navigation Functions
+      
+      ================================================*/
+      
+      function goToLobby() {
+        if (confirm('Are you sure you want to go back to lobby? Your current game will be lost.')) {
+          window.location.href = '../../index.html';
+        }
+      }
+      
+      function togglePause() {
+        if (isGameOver) return;
+        
+        isPaused = !isPaused;
+        const pauseIcon = document.querySelector('#pause-icon');
+        if (isPaused) {
+          pauseIcon.setAttribute('d', 'M8 5v14l11-7z');
+          showInstructions();
+        } else {
+          pauseIcon.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z');
+          hideInstructions();
+        }
+      }
+      
+      function showInstructions() {
+        document.getElementById('instructions').style.display = 'block';
+      }
+      
+      function hideInstructions() {
+        document.getElementById('instructions').style.display = 'none';
+      }
+      
+      function startGame() {
+        hideInstructions();
+        isPaused = false;
+        const pauseIcon = document.querySelector('#pause-icon');
+        pauseIcon.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z');
+      }
+      
+      function showGameOver(score) {
+        isGameOver = true;
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('gameOverHighScore').textContent = `High Score: ${highScore}`;
+        document.getElementById('gameOver').style.display = 'block';
+      }
+      
+      function restartGame() {
+        isGameOver = false;
+        document.getElementById('gameOver').style.display = 'none';
+        g.setState('play');
+      }
+      
+      /*================================================
+      
+      Mobile Controls - DIPERBAIKI
+      
+      ================================================*/
+      
+      function handleMobileControl(direction) {
+        if (isPaused || isGameOver) return;
+        
+        const now = Date.now();
+        if (now - lastSwipeTime < SWIPE_COOLDOWN) return;
+        lastSwipeTime = now;
+        
+        const state = g.currentState();
+        if (!state) return;
+        
+        // Reset semua key states dulu
+        state.keys.up = 0;
+        state.keys.down = 0;
+        state.keys.left = 0;
+        state.keys.right = 0;
+        
+        // Set direction dengan pengecekan yang benar
+        switch(direction) {
+          case 'up':
+            if (state.snake.dir != 's' && state.snake.currDir != 's') {
+              state.keys.up = 1;
+              state.snake.dir = 'n';
+            }
+            break;
+          case 'down':
+            if (state.snake.dir != 'n' && state.snake.currDir != 'n') {
+              state.keys.down = 1;
+              state.snake.dir = 's';
+            }
+            break;
+          case 'left':
+            if (state.snake.dir != 'e' && state.snake.currDir != 'e') {
+              state.keys.left = 1;
+              state.snake.dir = 'w';
+            }
+            break;
+          case 'right':
+            if (state.snake.dir != 'w' && state.snake.currDir != 'w') {
+              state.keys.right = 1;
+              state.snake.dir = 'e';
+            }
+            break;
+        }
+      }
+      
+      function clearTouch() {
+        // Clear touch setelah delay kecil
+        setTimeout(() => {
+          const state = g.currentState();
+          if (state) {
+            state.keys.up = 0;
+            state.keys.down = 0;
+            state.keys.left = 0;
+            state.keys.right = 0;
+          }
+        }, 50);
+      }
+      
+      // Touch swipe detection - DIPERBAIKI
+      const touchArea = document.getElementById('touchArea');
+      
+      touchArea.addEventListener('touchstart', function(e) {
+        if (isPaused || isGameOver) return;
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+      }, { passive: false });
+      
+      touchArea.addEventListener('touchend', function(e) {
+        if (isPaused || isGameOver) return;
+        e.preventDefault();
+        
+        const now = Date.now();
+        if (now - lastSwipeTime < SWIPE_COOLDOWN) return;
+        
+        const touch = e.changedTouches[0];
+        const touchEndX = touch.clientX;
+        const touchEndY = touch.clientY;
+        const state = g.currentState();
+        
+        if (!state) return;
+        
+        const dx = touchEndX - touchStartX;
+        const dy = touchEndY - touchStartY;
+        
+        // Minimum swipe distance - DITURUNKAN untuk sensitivitas lebih baik
+        const minSwipeDistance = 20;
+        
+        if (Math.abs(dx) < minSwipeDistance && Math.abs(dy) < minSwipeDistance) return;
+        
+        // Reset keys
+        state.keys.up = 0;
+        state.keys.down = 0;
+        state.keys.left = 0;
+        state.keys.right = 0;
+        
+        if (Math.abs(dx) > Math.abs(dy)) {
+          // Horizontal swipe
+          if (dx > 0) {
+            // Right swipe
+            if (state.snake.dir != 'w' && state.snake.currDir != 'w') {
+              state.keys.right = 1;
+              state.snake.dir = 'e';
+              lastSwipeTime = now;
+            }
+          } else {
+            // Left swipe
+            if (state.snake.dir != 'e' && state.snake.currDir != 'e') {
+              state.keys.left = 1;
+              state.snake.dir = 'w';
+              lastSwipeTime = now;
+            }
+          }
+        } else {
+          // Vertical swipe
+          if (dy > 0) {
+            // Down swipe
+            if (state.snake.dir != 'n' && state.snake.currDir != 'n') {
+              state.keys.down = 1;
+              state.snake.dir = 's';
+              lastSwipeTime = now;
+            }
+          } else {
+            // Up swipe
+            if (state.snake.dir != 's' && state.snake.currDir != 's') {
+              state.keys.up = 1;
+              state.snake.dir = 'n';
+              lastSwipeTime = now;
+            }
+          }
+        }
+      }, { passive: false });
+      
+      // Keyboard controls - DIPERBAIKI
+      document.addEventListener('keydown', function(e) {
+        e.preventDefault();
+        const key = e.key.toLowerCase();
+        const state = g.currentState();
+        
+        if (!state) return;
+        
+        // Pause dengan Escape atau P
+        if (e.key === 'Escape' || key === 'p') {
+          togglePause();
+          return;
+        }
+        
+        if (isPaused || isGameOver) return;
+        
+        // Reset keys
+        state.keys.up = 0;
+        state.keys.down = 0;
+        state.keys.left = 0;
+        state.keys.right = 0;
+        
+        // Arrow keys atau WASD
+        if (key === 'arrowup' || key === 'w' || key === 'up') {
+          if (state.snake.dir != 's' && state.snake.currDir != 's') {
+            state.keys.up = 1;
+            state.snake.dir = 'n';
+          }
+        } else if (key === 'arrowdown' || key === 's' || key === 'down') {
+          if (state.snake.dir != 'n' && state.snake.currDir != 'n') {
+            state.keys.down = 1;
+            state.snake.dir = 's';
+          }
+        } else if (key === 'arrowleft' || key === 'a' || key === 'left') {
+          if (state.snake.dir != 'e' && state.snake.currDir != 'e') {
+            state.keys.left = 1;
+            state.snake.dir = 'w';
+          }
+        } else if (key === 'arrowright' || key === 'd' || key === 'right') {
+          if (state.snake.dir != 'w' && state.snake.currDir != 'w') {
+            state.keys.right = 1;
+            state.snake.dir = 'e';
+          }
+        }
+      });
+      
+      // Mencegah scroll pada mobile
+      document.addEventListener('touchmove', function(e) {
+        if (e.target.classList.contains('control-btn') || e.target.closest('.control-btn')) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      /*================================================
+      
+      Core Game Code (tetap sama)
+      
+      ================================================*/
+      
+      // [Kode game yang sama seperti sebelumnya...]
+      // (kode dari line 870 sampai akhir tetap sama)
+      
+      /*================================================
+      
+      Math
+      
+      ================================================*/
+      
+      g.m = Math;
+      g.mathProps = 'E LN10 LN2 LOG2E LOG10E PI SQRT1_2 SQRT2 abs acos asin atan ceil cos exp floor log round sin sqrt tan atan2 pow max min'.split( ' ' );
+      for ( var i = 0; i < g.mathProps.length; i++ ) {
+        g[ g.mathProps[ i ] ] = g.m[ g.mathProps[ i ] ];
+      }
+      g.m.TWO_PI = g.m.PI * 2;
+      
+      /*================================================
+      
+      Miscellaneous
+      
+      ================================================*/
+      
+      g.isset = function( prop ) {
+        return typeof prop != 'undefined';
+      };
+      
+      g.log = function() {
+        if( g.isset( g.config ) && g.config.debug && window.console ){
+          console.log( Array.prototype.slice.call( arguments ) );
+        }
+      };
+      
+      /*================================================
+      
+      Group
+      
+      ================================================*/
+      
+      g.Group = function() {
+        this.collection = [];
+        this.length = 0;
+      };
+      
+      g.Group.prototype.add = function( item ) {
+        this.collection.push( item );
+        this.length++;
+      };
+      
+      g.Group.prototype.remove = function( index ) {
+        if( index < this.length ) {
+          this.collection.splice( index, 1 );
+          this.length--;
+        }
+      };
+      
+      g.Group.prototype.empty = function() {
+        this.collection.length = 0;
+        this.length = 0;
+      };
+      
+      g.Group.prototype.each = function( action, asc ) {
+        var asc = asc || 0,
+          i;
+        if( asc ) {
+          for( i = 0; i < this.length; i++ ) {
+            this.collection[ i ][ action ]( i );
+          }
+        } else {
+          i = this.length;
+          while( i-- ) {
+            this.collection[ i ][ action ]( i );
+          }
+        }
+      };
+      
+      /*================================================
+      
+      Utilities
+      
+      ================================================*/
+      
+      g.util = {};
+      
+      /*================================================
+      
+      Random
+      
+      ================================================*/
+      
+      g.util.rand = function( min, max ) {
+        return g.m.random() * ( max - min ) + min;
+      };
+      
+      g.util.randInt = function( min, max ) {
+        return g.m.floor( g.m.random() * ( max - min + 1) ) + min;
+      };
+      
+      /*================================================
+      
+      State
+      
+      ================================================*/
+      
+      g.states = {};
+      
+      g.addState = function( state ) {
+        g.states[ state.name ] = state;
+      };
+      
+      g.setState = function( name ) {
+        if( g.state ) {
+          g.states[ g.state ].exit();
+        }
+        g.state = name;
+        g.states[ g.state ].init();
+      };
+      
+      g.currentState = function() {
+        return g.states[ g.state ];
+      };
+      
+      /*================================================
+      
+      Time
+      
+      ================================================*/
+      
+      g.Time = function() {
+        this.reset();
+      }
+      
+      g.Time.prototype.reset = function() {
+        this.now = Date.now();
+        this.last = Date.now();
+        this.delta = 60;
+        this.ndelta = 1;
+        this.elapsed = 0;
+        this.nelapsed = 0;
+        this.tick = 0;
+      };
+      
+      g.Time.prototype.update = function() {
+        this.now = Date.now();
+        this.delta = this.now - this.last;
+        this.ndelta = Math.min( Math.max( this.delta / ( 1000 / 60 ), 0.0001 ), 10 );
+        this.elapsed += this.delta;
+        this.nelapsed += this.ndelta;
+        this.last = this.now;
+        this.tick++;
+      };
+      
+      /*================================================
+      
+      Grid Entity
+      
+      ================================================*/
+      
+      g.Grid = function( cols, rows ) {
+        this.cols = cols;
+        this.rows = rows;
+        this.tiles = [];
+        for( var x = 0; x < cols; x++ ) {
+          this.tiles[ x ] = [];
+          for( var y = 0; y < rows; y++ ) {
+            this.tiles[ x ].push( 'empty' );
+          }
+        }
+      };
+      
+      g.Grid.prototype.get = function( x, y ) {
+        return this.tiles[ x ][ y ];
+      };
+      
+      g.Grid.prototype.set = function( x, y, val ) {
+        this.tiles[ x ][ y ] = val;
+      };
+      
+      /*================================================
+      
+      Board Tile Entity
+      
+      ================================================*/
+      
+      g.BoardTile = function( opt ) {
+        this.parentState = opt.parentState;
+        this.parentGroup = opt.parentGroup;
+        this.col = opt.col;
+        this.row = opt.row;
+        this.x = opt.x;
+        this.y = opt.y;
+        this.z = 0;
+        this.w = opt.w;
+        this.h = opt.h;
+        this.elem = document.createElement( 'div' );
+        this.elem.style.position = 'absolute';
+        this.elem.className = 'tile';
+        this.parentState.stageElem.appendChild( this.elem );
+        this.classes = {
+          pressed: 0,
+          path: 0,
+          up: 0,
+          down: 0,
+          left: 0,
+          right: 0
+        }
+        this.updateDimensions();
+      };
+      
+      g.BoardTile.prototype.update = function() {
+        for( var k in this.classes ) {
+          if( this.classes[ k ] ) {
+            this.classes[ k ]--;
+          }
+        }
+      
+        if( this.parentState.food.tile.col == this.col || this.parentState.food.tile.row == this.row ) {
+          this.classes.path = 1;
+          if( this.col < this.parentState.food.tile.col ) {
+            this.classes.right = 1;
+          } else {
+            this.classes.right = 0;
+          }
+          if( this.col > this.parentState.food.tile.col ) {
+            this.classes.left = 1;
+          } else {
+            this.classes.left = 0;
+          }
+          if( this.row > this.parentState.food.tile.row ) {
+            this.classes.up = 1;
+          } else {
+            this.classes.up = 0;
+          }
+          if( this.row < this.parentState.food.tile.row ) {
+            this.classes.down = 1;
+          } else {
+            this.classes.down = 0;
+          }
+        } else {
+          this.classes.path = 0;
+        }
+      
+        if( this.parentState.food.eaten ) {
+          this.classes.path = 0;
+        }
+      };
+      
+      g.BoardTile.prototype.updateDimensions = function() {
+        this.x = this.col * this.parentState.tileWidth;
+        this.y = this.row * this.parentState.tileHeight;
+        this.w = this.parentState.tileWidth - this.parentState.spacing;
+        this.h = this.parentState.tileHeight - this.parentState.spacing;
+        this.elem.style.left = this.x + 'px';
+        this.elem.style.top = this.y + 'px';
+        this.elem.style.width = this.w + 'px';
+        this.elem.style.height = this.h + 'px';
+      };
+      
+      g.BoardTile.prototype.render = function() {
+        var classString = '';
+        for( var k in this.classes ) {
+          if( this.classes[ k ] ) {
+            classString += k + ' ';
+          }
+        }
+        this.elem.className = 'tile ' + classString;
+      };
+      
+      /*================================================
+      
+      Snake Tile Entity
+      
+      ================================================*/
+      
+      g.SnakeTile = function( opt ) {
+        this.parentState = opt.parentState;
+        this.parentGroup = opt.parentGroup;
+        this.col = opt.col;
+        this.row = opt.row;
+        this.x = opt.x;
+        this.y = opt.y;
+        this.w = opt.w;
+        this.h = opt.h;
+        this.color = null;
+        this.scale = 1;
+        this.rotation = 0;
+        this.blur = 0;
+        this.alpha = 1;
+        this.borderRadius = 0;
+        this.borderRadiusAmount = 0;
+        this.elem = document.createElement( 'div' );
+        this.elem.style.position = 'absolute';
+        this.parentState.stageElem.appendChild( this.elem );
+      };
+      
+      g.SnakeTile.prototype.update = function( i ) {
+        this.x = this.col * this.parentState.tileWidth;
+        this.y = this.row * this.parentState.tileHeight;
+        if( i == 0 ) {
+          this.color = '#fff';
+          this.blur = this.parentState.dimAvg * 0.03 + Math.sin( this.parentState.time.elapsed / 200 ) * this.parentState.dimAvg * 0.015;
+          if( this.parentState.snake.dir == 'n' ) {
+            this.borderRadius = this.borderRadiusAmount + '% ' + this.borderRadiusAmount + '% 0 0';
+          } else if( this.parentState.snake.dir == 's' ) {
+            this.borderRadius = '0 0 ' + this.borderRadiusAmount + '% ' + this.borderRadiusAmount + '%';
+          } else if( this.parentState.snake.dir == 'e' ) {
+            this.borderRadius = '0 ' + this.borderRadiusAmount + '% ' + this.borderRadiusAmount + '% 0';
+          } else if( this.parentState.snake.dir == 'w' ) {
+            this.borderRadius = this.borderRadiusAmount + '% 0 0 ' + this.borderRadiusAmount + '%';
+          }
+        } else {
+          this.color = '#fff';
+          this.blur = 0;
+          this.borderRadius = '0';
+        }
+        this.alpha = 1 - ( i / this.parentState.snake.tiles.length ) * 0.6;
+        this.rotation = ( this.parentState.snake.justAteTick / this.parentState.snake.justAteTickMax ) * 90;
+        this.scale = 1 + ( this.parentState.snake.justAteTick / this.parentState.snake.justAteTickMax ) * 1;
+      };
+      
+      g.SnakeTile.prototype.updateDimensions = function() {
+        this.w = this.parentState.tileWidth - this.parentState.spacing;
+        this.h = this.parentState.tileHeight - this.parentState.spacing;
+      };
+      
+      g.SnakeTile.prototype.render = function( i ) {
+        this.elem.style.left = this.x + 'px';
+        this.elem.style.top = this.y + 'px';
+        this.elem.style.width = this.w + 'px';
+        this.elem.style.height = this.h + 'px';
+        this.elem.style.backgroundColor = 'rgba(255, 255, 255, ' + this.alpha + ')';
+        this.elem.style.boxShadow = '0 0 ' + this.blur + 'px #fff';
+        this.elem.style.borderRadius = this.borderRadius;
+      };
+      
+      /*================================================
+      
+      Food Tile Entity
+      
+      ================================================*/
+      
+      g.FoodTile = function( opt ) {
+        this.parentState = opt.parentState;
+        this.parentGroup = opt.parentGroup;
+        this.col = opt.col;
+        this.row = opt.row;
+        this.x = opt.x;
+        this.y = opt.y;
+        this.w = opt.w;
+        this.h = opt.h;
+        this.blur = 0;
+        this.scale = 1;
+        this.hue = g.util.randInt(0, 360);
+        this.opacity = 0;
+        this.elem = document.createElement( 'div' );
+        this.elem.style.position = 'absolute';
+        this.parentState.stageElem.appendChild( this.elem );
+      };
+      
+      g.FoodTile.prototype.update = function() {
+        this.x = this.col * this.parentState.tileWidth;
+        this.y = this.row * this.parentState.tileHeight;
+        this.blur = this.parentState.dimAvg * 0.03 + Math.sin( this.parentState.time.elapsed / 200 ) * this.parentState.dimAvg * 0.015;
+        this.scale = 0.8 + Math.sin( this.parentState.time.elapsed / 200 ) * 0.2;
+        
+        // Change color gradually
+        this.hue = (this.hue + 0.5) % 360;
+      
+        if( this.parentState.food.birthTick || this.parentState.food.deathTick ) {
+          if( this.parentState.food.birthTick ) {
+            this.opacity = 1 - ( this.parentState.food.birthTick / 1 ) * 1;
+          } else {
+            this.opacity = ( this.parentState.food.deathTick / 1 ) * 1;
+          }
+        } else {
+          this.opacity = 1;
+        }
+      };
+      
+      g.FoodTile.prototype.updateDimensions = function() {
+        this.w = this.parentState.tileWidth - this.parentState.spacing;
+        this.h = this.parentState.tileHeight - this.parentState.spacing;
+      };
+      
+      g.FoodTile.prototype.render = function() {
+        this.elem.style.left = this.x + 'px';
+        this.elem.style.top = this.y + 'px';
+        this.elem.style.width = this.w + 'px';
+        this.elem.style.height = this.h + 'px';
+        this.elem.style[ 'transform' ] = 'translateZ(0) scale(' + this.scale + ')';
+        this.elem.style.backgroundColor = 'hsla(' + this.hue + ', 100%, 60%, 1)';
+        this.elem.style.boxShadow = '0 0 ' + this.blur + 'px hsla(' + this.hue + ', 100%, 60%, 1)';
+        this.elem.style.opacity = this.opacity;
+      };
+      
+      /*================================================
+      
+      Snake Entity
+      
+      ================================================*/
+      
+      g.Snake = function( opt ) {
+        this.parentState = opt.parentState;
+        this.dir = 'e',
+        this.currDir = this.dir;
+        this.tiles = [];
+        for( var i = 0; i < 5; i++ ) {
+          this.tiles.push( new g.SnakeTile({
+            parentState: this.parentState,
+            parentGroup: this.tiles,
+            col: 8 - i,
+            row: 3,
+            x: ( 8 - i ) * opt.parentState.tileWidth,
+            y: 3 * opt.parentState.tileHeight,
+            w: opt.parentState.tileWidth - opt.parentState.spacing,
+            h: opt.parentState.tileHeight - opt.parentState.spacing
+          }));
+        }
+        this.last = 0;
+        this.updateTick = 10;
+        this.updateTickMax = this.updateTick;
+        this.updateTickLimit = 3;
+        this.updateTickChange = 0.2;
+        this.deathFlag = 0;
+        this.justAteTick = 0;
+        this.justAteTickMax = 1;
+        this.justAteTickChange = 0.05;
+      
+        // sync data grid of the play state
+        var i = this.tiles.length;
+      
+        while( i-- ) {
+          this.parentState.grid.set( this.tiles[ i ].col, this.tiles[ i ].row, 'snake' );
+        }
+      };
+      
+      g.Snake.prototype.updateDimensions = function() {
+        var i = this.tiles.length;
+        while( i-- ) {
+          this.tiles[ i ].updateDimensions();
+        }
+      };
+      
+      g.Snake.prototype.update = function() {
+        if (isPaused) return;
+        
+        this.parentState.keys.up && ( this.parentState.keys.up = 0 );
+        this.parentState.keys.down && ( this.parentState.keys.down = 0 );
+        this.parentState.keys.right && ( this.parentState.keys.right = 0 );
+        this.parentState.keys.left && ( this.parentState.keys.left = 0 );
+      
+        this.updateTick += this.parentState.time.ndelta;
+        if( this.updateTick >= this.updateTickMax ) {
+          // reset the update timer to 0, or whatever leftover there is
+          this.updateTick = ( this.updateTick - this.updateTickMax );
+      
+          // rotate snake block array
+          this.tiles.unshift( new g.SnakeTile({
+            parentState: this.parentState,
+            parentGroup: this.tiles,
+            col: this.tiles[ 0 ].col,
+            row: this.tiles[ 0 ].row,
+            x: this.tiles[ 0 ].col * this.parentState.tileWidth,
+            y: this.tiles[ 0 ].row * this.parentState.tileHeight,
+            w: this.parentState.tileWidth - this.parentState.spacing,
+            h: this.parentState.tileHeight - this.parentState.spacing
+          }));
+          this.last = this.tiles.pop();
+          this.parentState.stageElem.removeChild( this.last.elem );
+      
+          this.parentState.boardTiles.collection[ this.last.col + ( this.last.row * this.parentState.cols ) ].classes.pressed = 2;
+      
+          // sync data grid of the play state
+          var i = this.tiles.length;
+      
+          while( i-- ) {
+            this.parentState.grid.set( this.tiles[ i ].col, this.tiles[ i ].row, 'snake' );
+          }
+          this.parentState.grid.set( this.last.col, this.last.row, 'empty' );
+      
+          // move the snake's head
+          if ( this.dir == 'n' ) {
+            this.currDir = 'n';
+            this.tiles[ 0 ].row -= 1;
+          } else if( this.dir == 's' ) {
+            this.currDir = 's';
+            this.tiles[ 0 ].row += 1;
+          } else if( this.dir == 'w' ) {
+            this.currDir = 'w';
+            this.tiles[ 0 ].col -= 1;
+          } else if( this.dir == 'e' ) {
+            this.currDir = 'e';
+            this.tiles[ 0 ].col += 1;
+          }
+      
+          // wrap walls
+          this.wallFlag = false;
+          if( this.tiles[ 0 ].col >= this.parentState.cols ) {
+            this.tiles[ 0 ].col = 0;
+            this.wallFlag = true;
+          }
+          if( this.tiles[ 0 ].col < 0 ) {
+            this.tiles[ 0 ].col = this.parentState.cols - 1;
+            this.wallFlag = true;
+          }
+          if( this.tiles[ 0 ].row >= this.parentState.rows ) {
+            this.tiles[ 0 ].row = 0;
+            this.wallFlag = true;
+          }
+          if( this.tiles[ 0 ].row < 0 ) {
+            this.tiles[ 0 ].row = this.parentState.rows - 1;
+            this.wallFlag = true;
+          }
+      
+          // check death by eating self
+          if( this.parentState.grid.get( this.tiles[ 0 ].col, this.tiles[ 0 ].row ) == 'snake' ) {
+            this.deathFlag = 1;
+            clearTimeout( this.foodCreateTimeout );
+          }
+      
+          // check eating of food
+          if( this.parentState.grid.get( this.tiles[ 0 ].col, this.tiles[ 0 ].row ) == 'food' ) {
+            this.tiles.push( new g.SnakeTile({
+              parentState: this.parentState,
+              parentGroup: this.tiles,
+              col: this.last.col,
+              row: this.last.row,
+              x: this.last.col * this.parentState.tileWidth,
+              y: this.last.row * this.parentState.tileHeight,
+              w: this.parentState.tileWidth - this.parentState.spacing,
+              h: this.parentState.tileHeight - this.parentState.spacing
+            }));
+            if( this.updateTickMax - this.updateTickChange > this.updateTickLimit ) {
+              this.updateTickMax -= this.updateTickChange;
+            }
+            this.parentState.score++;
+            this.parentState.scoreElem.innerHTML = this.parentState.score;
+            this.justAteTick = this.justAteTickMax;
+      
+            this.parentState.food.eaten = 1;
+            this.parentState.stageElem.removeChild( this.parentState.food.tile.elem );
+      
+            var _this = this;
+            
+            this.foodCreateTimeout = setTimeout( function() {
+              _this.parentState.food = new g.Food({
+                parentState: _this.parentState
+              });
+            }, 300);
+          }
+      
+          // check death by eating self
+          if( this.deathFlag ) {
+            // Update high score
+            if (this.parentState.score > highScore) {
+              highScore = this.parentState.score;
+              localStorage.setItem('snakeHighScore', highScore);
+              document.querySelector('.high-score').textContent = `High: ${highScore}`;
+            }
+            
+            showGameOver(this.parentState.score);
+            return;
+          }
+        }
+      
+        // update individual snake tiles
+        var i = this.tiles.length;
+        while( i-- ) {
+          this.tiles[ i ].update( i );
+        }
+      
+        if( this.justAteTick > 0 ) {
+          this.justAteTick -= this.justAteTickChange;
+        } else if( this.justAteTick < 0 ) {
+          this.justAteTick = 0;
+        }
+      };
+      
+      g.Snake.prototype.render = function() {
+        // render individual snake tiles
+        var i = this.tiles.length;
+        while( i-- ) {
+          this.tiles[ i ].render( i );
+        }
+      };
+      
+      /*================================================
+      
+      Food Entity
+      
+      ================================================*/
+      
+      g.Food = function( opt ) {
+        this.parentState = opt.parentState;
+        this.tile = new g.FoodTile({
+          parentState: this.parentState,
+          col: 0,
+          row: 0,
+          x: 0,
+          y: 0,
+          w: opt.parentState.tileWidth - opt.parentState.spacing,
+          h: opt.parentState.tileHeight - opt.parentState.spacing
+        });
+        this.reset();
+        this.eaten = 0;
+        this.birthTick = 1;
+        this.deathTick = 0;
+        this.birthTickChange = 0.025;
+        this.deathTickChange = 0.05;
+      };
+      
+      g.Food.prototype.reset = function() {
+        var empty = [];
+        for( var x = 0; x < this.parentState.cols; x++) {
+          for( var y = 0; y < this.parentState.rows; y++) {
+            var tile = this.parentState.grid.get( x, y );
+            if( tile == 'empty' ) {
+              empty.push( { x: x, y: y } );
+            }
+          }
+        }
+        if (empty.length > 0) {
+          var newTile = empty[ g.util.randInt( 0, empty.length - 1 ) ];
+          this.tile.col = newTile.x;
+          this.tile.row = newTile.y;
+        }
+      };
+      
+      g.Food.prototype.updateDimensions = function() {
+        this.tile.updateDimensions();
+      };
+      
+      g.Food.prototype.update = function() {
+        if (isPaused) return;
+        
+        // update food tile
+        this.tile.update();
+      
+        if( this.birthTick > 0 ) {
+          this.birthTick -= this.birthTickChange;
+        } else if( this.birthTick < 0 ) {
+          this.birthTick = 0;
+        }
+      
+        // sync data grid of the play state
+        this.parentState.grid.set( this.tile.col, this.tile.row, 'food' );
+      };
+      
+      g.Food.prototype.render = function() {
+        this.tile.render();
+      };
+      
+      /*================================================
+      
+      Play State
+      
+      ================================================*/
+      
+      function StatePlay() {
+        this.name = 'play';
+      }
+      
+      StatePlay.prototype.init = function() {
+        this.scoreElem = document.querySelector( '.score' );
+        this.stageElem = document.querySelector( '.stage' );
+        this.dimLong = 28;
+        this.dimShort = 16;
+        this.padding = 0.25;
+        this.boardTiles = new g.Group();
+        this.keys = {};
+        this.foodCreateTimeout = null;
+        this.score = 0;
+        this.scoreElem.innerHTML = this.score;
+        this.time = new g.Time();
+        this.getDimensions();
+        if( this.winWidth < this.winHeight ) {
+          this.rows = this.dimLong;
+          this.cols = this.dimShort;
+        } else {
+          this.rows = this.dimShort;
+          this.cols = this.dimLong;
+        }
+        this.spacing = 1;
+        this.grid = new g.Grid( this.cols, this.rows );
+        this.resize();
+        this.createBoardTiles();
+        this.bindEvents();
+        this.snake = new g.Snake({
+          parentState: this
+        });
+        this.food = new g.Food({
+          parentState: this
+        });
+        
+        // Show instructions on first load
+        if (!localStorage.getItem('snakeInstructionsShown')) {
+          showInstructions();
+          localStorage.setItem('snakeInstructionsShown', 'true');
+        }
+      };
+      
+      StatePlay.prototype.getDimensions = function() {
+        this.winWidth = window.innerWidth;
+        this.winHeight = window.innerHeight;
+        this.activeWidth = this.winWidth - ( this.winWidth * this.padding );
+        this.activeHeight = this.winHeight - ( this.winHeight * this.padding );
+      };
+      
+      StatePlay.prototype.resize = function() {
+        var _this = g.currentState();
+      
+        _this.getDimensions();
+      
+        _this.stageRatio = _this.rows / _this.cols;
+      
+        if( _this.activeWidth > _this.activeHeight / _this.stageRatio ) {
+          _this.stageHeight = _this.activeHeight;
+          _this.stageElem.style.height = _this.stageHeight + 'px';
+          _this.stageWidth = Math.floor( _this.stageHeight /_this.stageRatio );
+          _this.stageElem.style.width = _this.stageWidth + 'px';
+        } else {
+          _this.stageWidth = _this.activeWidth;
+          _this.stageElem.style.width = _this.stageWidth + 'px';
+          _this.stageHeight = Math.floor( _this.stageWidth * _this.stageRatio );
+          _this.stageElem.style.height = _this.stageHeight + 'px';
+        }
+      
+        _this.tileWidth = ~~( _this.stageWidth / _this.cols );
+        _this.tileHeight = ~~( _this.stageHeight / _this.rows );
+        _this.dimAvg = ( _this.activeWidth + _this.activeHeight ) / 2;
+        _this.spacing = Math.max( 1, ~~( _this.dimAvg * 0.0025 ) );
+      
+        _this.stageElem.style.marginTop = '0px';
+        _this.stageElem.style.marginLeft = ( ( _this.winWidth - _this.stageWidth ) / 2 ) + 'px';
+      
+        _this.boardTiles.each( 'updateDimensions' );
+        _this.snake !== undefined && _this.snake.updateDimensions();
+        _this.food !== undefined && _this.food.updateDimensions();
+      };
+      
+      StatePlay.prototype.createBoardTiles = function() {
+        for( var y = 0; y < this.rows; y++ ) {
+          for( var x = 0; x < this.cols; x++ ) {
+            this.boardTiles.add( new g.BoardTile({
+              parentState: this,
+              parentGroup: this.boardTiles,
+              col: x,
+              row: y,
+              x: x * this.tileWidth,
+              y: y * this.tileHeight,
+              w: this.tileWidth - this.spacing,
+              h: this.tileHeight - this.spacing
+            }));
+          }
+        }
+      };
+      
+      StatePlay.prototype.upOn = function() { 
+        if (!isPaused && !isGameOver) {
+          g.currentState().keys.up = 1; 
+        }
+      }
+      StatePlay.prototype.downOn = function() { 
+        if (!isPaused && !isGameOver) {
+          g.currentState().keys.down = 1; 
+        }
+      }
+      StatePlay.prototype.rightOn = function() { 
+        if (!isPaused && !isGameOver) {
+          g.currentState().keys.right = 1; 
+        }
+      }
+      StatePlay.prototype.leftOn = function() { 
+        if (!isPaused && !isGameOver) {
+          g.currentState().keys.left = 1; 
+        }
+      }
+      StatePlay.prototype.upOff = function() { g.currentState().keys.up = 0; }
+      StatePlay.prototype.downOff = function() { g.currentState().keys.down = 0; }
+      StatePlay.prototype.rightOff = function() { g.currentState().keys.right = 0; }
+      StatePlay.prototype.leftOff = function() { g.currentState().keys.left = 0; }
+      
+      StatePlay.prototype.bindEvents = function() {
+        var _this = g.currentState();
+        window.addEventListener( 'resize', _this.resize, false );
+      };
+      
+      StatePlay.prototype.step = function() {
+        if (isPaused) return;
+        
+        this.boardTiles.each( 'update' );
+        this.boardTiles.each( 'render' );
+        this.snake.update();
+        this.snake.render();
+        this.food.update();
+        this.food.render();
+        this.time.update();
+      };
+      
+      StatePlay.prototype.exit = function() {
+        window.removeEventListener( 'resize', this.resize, false );
+        this.stageElem.innerHTML = '';
+        this.grid.tiles = null;
+        this.time = null;
+      };
+      
+      g.addState( new StatePlay() );
+      
+      /*================================================
+      
+      Game
+      
+      ================================================*/
+      
+      g.config = {
+        title: 'Feed The Snake',
+        debug: window.location.hash == '#debug' ? 1 : 0,
+        state: 'play'
+      };
+      
+      g.setState( g.config.state );
+      
+      g.time = new g.Time();
+      
+      g.step = function() {
+        requestAnimationFrame( g.step );
+        if (!isPaused) {
+          g.states[ g.state ].step();
+          g.time.update();
+        }
+      };
+      
+      window.addEventListener( 'load', g.step, false );
+      
+    </script>
+  </body>
+</html>

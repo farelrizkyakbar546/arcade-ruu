@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shoot It - Archery Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+      
+      body {
+        margin: 0;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        min-height: 100vh;
+        overflow: hidden;
+        font-family: 'Arial', sans-serif;
+        user-select: none;
+      }
+      
+      #game-container {
+        position: fixed;
+        width: 100%;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+      }
+      
+      svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      
+      /* ===== HEADER & CONTROLS ===== */
+      .game-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .back-button {
+        background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-family: 'Arial', sans-serif;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 180, 219, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 120px;
+        justify-content: center;
+      }
+      
+      .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 180, 219, 0.4);
+      }
+      
+      .back-button:active {
+        transform: translateY(0);
+      }
+      
+      .back-button::before {
+        content: "←";
+        font-size: 18px;
+      }
+      
+      .game-controls {
+        display: flex;
+        gap: 10px;
+      }
+      
+      .control-button {
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-family: 'Arial', sans-serif;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+        min-width: 120px;
+      }
+      
+      .control-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 65, 108, 0.4);
+      }
+      
+      /* ===== SCORE PANEL ===== */
+      .score-panel {
+        position: fixed;
+        top: 80px;
+        left: 15px;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        min-width: 200px;
+      }
+      
+      .score-panel h3 {
+        color: #00b4db;
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        text-align: center;
+        border-bottom: 2px solid rgba(0, 180, 219, 0.3);
+        padding-bottom: 8px;
+      }
+      
+      .score-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 10px 0;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .score-label {
+        color: #aaa;
+        font-size: 14px;
+      }
+      
+      .score-value {
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+      }
+      
+      #score {
+        color: #ffcc00;
+      }
+      
+      #best-score {
+        color: #00ff88;
+      }
+      
+      /* ===== POWER INDICATOR ===== */
+      .power-indicator-container {
+        position: fixed;
+        left: 20px;
+        bottom: 120px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      
+      .power-bar {
+        width: 20px;
+        height: 200px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        overflow: hidden;
+        position: relative;
+      }
+      
+      .power-fill {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        background: linear-gradient(to top, #00ff88, #ffcc00, #ff416c);
+        height: 0%;
+        transition: height 0.1s;
+        border-radius: 8px;
+      }
+      
+      .power-label {
+        color: white;
+        font-size: 14px;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        opacity: 0.7;
+      }
+      
+      /* ===== GAME INFO ===== */
+      .game-info {
+        position: fixed;
+        bottom: 20px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 14px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+      }
+      
+      .wind-indicator {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        min-width: 120px;
+      }
+      
+      .wind-label {
+        font-size: 12px;
+        color: #aaa;
+        margin-bottom: 5px;
+      }
+      
+      .wind-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #00b4db;
+      }
+      
+      .wind-direction {
+        font-size: 12px;
+        margin-top: 5px;
+        color: #ffcc00;
+      }
+      
+      /* ===== MOBILE OPTIMIZATION ===== */
+      @media (max-width: 768px) {
+        .game-header {
+          padding: 10px;
+          flex-direction: column;
+          gap: 10px;
+        }
+        
+        .back-button, .control-button {
+          padding: 15px 20px;
+          font-size: 16px;
+          min-width: 140px;
+          width: 100%;
+        }
+        
+        .game-controls {
+          width: 100%;
+        }
+        
+        .score-panel {
+          top: 150px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 90%;
+          max-width: 300px;
+        }
+        
+        .power-indicator-container {
+          left: 10px;
+          bottom: 200px;
+        }
+        
+        .power-bar {
+          height: 150px;
+        }
+        
+        .wind-indicator {
+          top: 170px;
+          right: 50%;
+          transform: translateX(50%);
+        }
+        
+        .game-info {
+          font-size: 12px;
+          padding: 10px;
+        }
+        
+        /* Larger touch targets for mobile */
+        button {
+          min-height: 50px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .back-button, .control-button {
+          font-size: 14px;
+          padding: 12px 15px;
+        }
+        
+        .score-panel {
+          padding: 15px;
+        }
+        
+        .score-panel h3 {
+          font-size: 16px;
+        }
+        
+        .score-value {
+          font-size: 14px;
+        }
+      }
+      
+      /* Landscape mode optimization */
+      @media (max-height: 600px) and (orientation: landscape) {
+        .game-header {
+          padding: 8px;
+        }
+        
+        .score-panel {
+          top: 60px;
+          padding: 10px;
+          min-width: 180px;
+        }
+        
+        .power-indicator-container {
+          bottom: 80px;
+        }
+        
+        .power-bar {
+          height: 120px;
+        }
+      }
+      
+      /* Prevent text selection */
+      .no-select {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      
+      /* Loading screen */
+      .loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #1a1a2e;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        color: white;
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div class="loading" id="loading">
+      Loading Archery Game...
+    </div>
+    
+    <!-- Game Container -->
+    <div id="game-container">
+      <!-- Header with Controls -->
+      <div class="game-header">
+        <button class="back-button" onclick="goBackToLobby()">Back to Lobby</button>
+        
+        <div class="game-controls">
+          <button class="control-button" onclick="resetGame()">Reset Game</button>
+          <button class="control-button" onclick="toggleDifficulty()" id="difficulty-btn">
+            Difficulty: <span id="difficulty-level">Normal</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Score Panel -->
+      <div class="score-panel">
+        <h3>🎯 ARCHERY</h3>
+        <div class="score-item">
+          <span class="score-label">SCORE</span>
+          <span class="score-value" id="score">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">SHOTS</span>
+          <span class="score-value" id="shots">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">ACCURACY</span>
+          <span class="score-value" id="accuracy">0%</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">BEST</span>
+          <span class="score-value" id="best-score">0</span>
+        </div>
+      </div>
+      
+      <!-- Power Indicator -->
+      <div class="power-indicator-container">
+        <div class="power-bar">
+          <div class="power-fill" id="power-fill"></div>
+        </div>
+        <div class="power-label">POWER</div>
+      </div>
+      
+      <!-- Wind Indicator -->
+      <div class="wind-indicator">
+        <div class="wind-label">WIND</div>
+        <div class="wind-value" id="wind-value">0.0</div>
+        <div class="wind-direction" id="wind-direction">→ No Wind</div>
+      </div>
+      
+      <!-- Game Info -->
+      <div class="game-info">
+        <div id="instructions">TOUCH & DRAG to aim • RELEASE to shoot</div>
+        <div id="hint" style="font-size: 12px; margin-top: 5px; color: #ffcc00;">
+          Pull further for more power!
+        </div>
+      </div>
+      
+      <!-- SVG Game Area -->
+      <svg id="game-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet">
+        <!-- Sky Gradient -->
+        <defs>
+          <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#1a1a2e" />
+            <stop offset="100%" stop-color="#16213e" />
+          </linearGradient>
+          
+          <linearGradient id="groundGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#2a2a2a" />
+            <stop offset="100%" stop-color="#1a1a1a" />
+          </linearGradient>
+          
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        
+        <!-- Background -->
+        <rect width="1000" height="500" fill="url(#skyGradient)"/>
+        
+        <!-- Ground -->
+        <rect y="380" width="1000" height="120" fill="url(#groundGradient)"/>
+        
+        <!-- Distance Markers -->
+        <g id="distance-markers" opacity="0.3">
+          <line x1="200" y1="380" x2="200" y2="400" stroke="#666" stroke-width="2"/>
+          <text x="200" y="420" text-anchor="middle" fill="#888" font-size="12">200m</text>
+          
+          <line x1="400" y1="380" x2="400" y2="400" stroke="#666" stroke-width="2"/>
+          <text x="400" y="420" text-anchor="middle" fill="#888" font-size="12">400m</text>
+          
+          <line x1="600" y1="380" x2="600" y2="400" stroke="#666" stroke-width="2"/>
+          <text x="600" y="420" text-anchor="middle" fill="#888" font-size="12">600m</text>
+          
+          <line x1="800" y1="380" x2="800" y2="400" stroke="#666" stroke-width="2"/>
+          <text x="800" y="420" text-anchor="middle" fill="#888" font-size="12">800m</text>
+        </g>
+        
+        <!-- Trajectory Line -->
+        <path id="trajectory-line" fill="none" stroke="#00ff88" stroke-width="2" 
+              stroke-dasharray="5,5" opacity="0.7" d=""/>
+        
+        <!-- Bow Area -->
+        <g id="bow-area" transform="translate(50, 350)">
+          <!-- Bow -->
+          <path id="bow" d="M0,-30 Q40,-30 50,0 Q40,30 0,30" 
+                fill="none" stroke="#888" stroke-width="4"/>
+          
+          <!-- Bow String -->
+          <line id="bow-string" x1="0" y1="-30" x2="0" y2="30" 
+                stroke="#ddd" stroke-width="3" stroke-linecap="round"/>
+          
+          <!-- Arrow Notch -->
+          <circle cx="0" cy="0" r="5" fill="#444"/>
+        </g>
+        
+        <!-- Current Arrow -->
+        <g id="current-arrow" transform="translate(50, 350)">
+          <line x1="0" y1="0" x2="60" y2="0" stroke="#ffcc00" stroke-width="4" stroke-linecap="round"/>
+          <polygon points="60,-5 70,0 60,5" fill="#ffcc00"/>
+          <polygon points="0,-5 -5,0 0,5" fill="#ff416c"/>
+        </g>
+        
+        <!-- Target -->
+        <g id="target" transform="translate(850, 350)">
+          <!-- Target Stand -->
+          <rect x="-10" y="0" width="20" height="30" fill="#666"/>
+          <rect x="-20" y="30" width="40" height="10" fill="#888"/>
+          
+          <!-- Target Circles -->
+          <circle cx="0" cy="-40" r="40" fill="none" stroke="#ff416c" stroke-width="2" opacity="0.3"/>
+          <circle cx="0" cy="-40" r="30" fill="none" stroke="#ff416c" stroke-width="2" opacity="0.4"/>
+          <circle cx="0" cy="-40" r="20" fill="none" stroke="#ff416c" stroke-width="2" opacity="0.5"/>
+          <circle cx="0" cy="-40" r="10" fill="none" stroke="#ff416c" stroke-width="2" opacity="0.6"/>
+          
+          <!-- Bullseye -->
+          <circle cx="0" cy="-40" r="8" fill="#ff416c"/>
+          <circle cx="0" cy="-40" r="5" fill="#ffcc00"/>
+          <circle cx="0" cy="-40" r="2" fill="#00ff88"/>
+          
+          <!-- Target Label -->
+          <text x="0" y="-100" text-anchor="middle" fill="#00b4db" font-size="16" font-weight="bold">
+            TARGET
+          </text>
+          <text x="0" y="-80" text-anchor="middle" fill="#aaa" font-size="12">
+            800m
+          </text>
+        </g>
+        
+        <!-- Flying Arrows Container -->
+        <g id="flying-arrows"></g>
+        
+        <!-- Hit Effects -->
+        <g id="hit-effects" opacity="0">
+          <circle id="hit-circle" cx="850" cy="310" r="20" fill="none" stroke="#00ff88" stroke-width="3"/>
+          <g id="sparkles">
+            <circle cx="830" cy="290" r="3" fill="#ffcc00"/>
+            <circle cx="870" cy="330" r="3" fill="#ffcc00"/>
+            <circle cx="850" cy="290" r="3" fill="#ffcc00"/>
+            <circle cx="830" cy="330" r="3" fill="#ffcc00"/>
+          </g>
+        </g>
+        
+        <!-- Score Display Area -->
+        <g id="score-display" opacity="0" transform="translate(500, 100)">
+          <rect x="-60" y="-30" width="120" height="60" rx="10" fill="rgba(0,0,0,0.8)"/>
+          <text id="score-text" x="0" y="5" text-anchor="middle" fill="#00ff88" font-size="24" font-weight="bold">
+            +100
+          </text>
+        </g>
+      </svg>
+    </div>
+
+    <script>
+      // ========== GAME CONFIGURATION ==========
+      const CONFIG = {
+        difficulties: {
+          easy: { 
+            gravity: 0.15, 
+            windMultiplier: 0.5,
+            powerMultiplier: 1.2,
+            accuracy: 0.9,
+            targetDistance: 700
+          },
+          normal: { 
+            gravity: 0.25, 
+            windMultiplier: 1.0,
+            powerMultiplier: 1.0,
+            accuracy: 0.8,
+            targetDistance: 800
+          },
+          hard: { 
+            gravity: 0.35, 
+            windMultiplier: 1.5,
+            powerMultiplier: 0.9,
+            accuracy: 0.7,
+            targetDistance: 900
+          }
+        },
+        physics: {
+          basePower: 30,        // INCREASED from 15
+          maxPower: 45,         // INCREASED from 25
+          drag: 0.99,
+          arrowSpeed: 0.8
+        },
+        scoring: {
+          bullseye: { radius: 10, points: 100, color: '#00ff88' },
+          inner: { radius: 20, points: 50, color: '#ffcc00' },
+          middle: { radius: 30, points: 30, color: '#ff9966' },
+          outer: { radius: 40, points: 10, color: '#ff416c' }
+        }
+      };
+      
+      // ========== GAME STATE ==========
+      let gameState = {
+        score: 0,
+        shots: 0,
+        hits: 0,
+        bestScore: parseInt(localStorage.getItem('archeryBestScore')) || 0,
+        isDragging: false,
+        canShoot: true,
+        difficulty: 'normal',
+        wind: 0,
+        currentPower: 0,
+        currentAngle: 0,
+        startX: 0,
+        startY: 0,
+        isMobile: false
+      };
+      
+      // ========== DOM ELEMENTS ==========
+      const elements = {
+        loading: document.getElementById('loading'),
+        gameSvg: document.getElementById('game-svg'),
+        trajectoryLine: document.getElementById('trajectory-line'),
+        bowString: document.getElementById('bow-string'),
+        currentArrow: document.getElementById('current-arrow'),
+        flyingArrows: document.getElementById('flying-arrows'),
+        hitEffects: document.getElementById('hit-effects'),
+        powerFill: document.getElementById('power-fill'),
+        score: document.getElementById('score'),
+        shots: document.getElementById('shots'),
+        accuracy: document.getElementById('accuracy'),
+        bestScore: document.getElementById('best-score'),
+        windValue: document.getElementById('wind-value'),
+        windDirection: document.getElementById('wind-direction'),
+        difficultyLevel: document.getElementById('difficulty-level'),
+        difficultyBtn: document.getElementById('difficulty-btn'),
+        instructions: document.getElementById('instructions'),
+        hint: document.getElementById('hint')
+      };
+      
+      // ========== GAME CONSTANTS ==========
+      const BOW_POSITION = { x: 50, y: 350 };
+      let TARGET_POSITION = { x: 850, y: 310 }; // Will be updated based on difficulty
+      const MAX_PULL_DISTANCE = 150; // INCREASED for more power
+      const MIN_POWER_THRESHOLD = 0.2;
+      
+      // ========== INITIALIZATION ==========
+      function initGame() {
+        detectMobile();
+        setupEventListeners();
+        updateTargetPosition();
+        updateWind();
+        updateUI();
+        hideLoading();
+        
+        // Show tutorial on first visit
+        if (!localStorage.getItem('archeryTutorialShown')) {
+          setTimeout(showTutorial, 500);
+          localStorage.setItem('archeryTutorialShown', 'true');
+        }
+      }
+      
+      function detectMobile() {
+        gameState.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (gameState.isMobile) {
+          elements.instructions.textContent = 'TOUCH & DRAG to aim • RELEASE to shoot';
+          elements.hint.textContent = 'Pull further down for more power!';
+        }
+      }
+      
+      function showTutorial() {
+        const message = gameState.isMobile 
+          ? `🎯 ARCHERY GAME - TOUCH CONTROLS\n\n1. TOUCH and DRAG DOWN to charge power\n2. DRAG LEFT/RIGHT to adjust angle\n3. RELEASE to shoot\n4. Watch the trajectory line!\n\nTarget Distance: ${CONFIG.difficulties[gameState.difficulty].targetDistance}m`
+          : `🎯 ARCHERY GAME - MOUSE CONTROLS\n\n1. CLICK and DRAG DOWN to charge power\n2. DRAG LEFT/RIGHT to adjust angle\n3. RELEASE to shoot\n4. Watch the trajectory line!\n\nTarget Distance: ${CONFIG.difficulties[gameState.difficulty].targetDistance}m`;
+        
+        alert(message);
+      }
+      
+      function hideLoading() {
+        gsap.to(elements.loading, {
+          opacity: 0,
+          duration: 0.5,
+          onComplete: () => {
+            elements.loading.style.display = 'none';
+          }
+        });
+      }
+      
+      function setupEventListeners() {
+        // Mouse events
+        elements.gameSvg.addEventListener("mousedown", startAiming);
+        document.addEventListener("mousemove", handleAiming);
+        document.addEventListener("mouseup", releaseArrow);
+        
+        // Touch events with passive: false for better performance
+        elements.gameSvg.addEventListener("touchstart", handleTouchStart, { passive: false });
+        document.addEventListener("touchmove", handleTouchMove, { passive: false });
+        document.addEventListener("touchend", handleTouchEnd, { passive: false });
+        
+        // Keyboard events
+        document.addEventListener('keydown', handleKeydown);
+        
+        // Window resize
+        window.addEventListener('resize', handleResize);
+      }
+      
+      // ========== TOUCH HANDLERS ==========
+      function handleTouchStart(e) {
+        e.preventDefault();
+        if (e.touches.length === 1) {
+          startAiming(e.touches[0]);
+        }
+      }
+      
+      function handleTouchMove(e) {
+        e.preventDefault();
+        if (e.touches.length === 1) {
+          handleAiming(e.touches[0]);
+        }
+      }
+      
+      function handleTouchEnd(e) {
+        e.preventDefault();
+        if (e.changedTouches.length === 1) {
+          releaseArrow(e.changedTouches[0]);
+        }
+      }
+      
+      // ========== AIMING MECHANICS ==========
+      function startAiming(e) {
+        if (!gameState.canShoot) return;
+        
+        e.preventDefault();
+        gameState.isDragging = true;
+        gameState.canShoot = false;
+        
+        const startPoint = getSVGPoint(e);
+        gameState.startX = startPoint.x;
+        gameState.startY = startPoint.y;
+        
+        // Reset trajectory line
+        elements.trajectoryLine.setAttribute('d', '');
+        
+        updateAiming(e);
+      }
+      
+      function handleAiming(e) {
+        if (!gameState.isDragging) return;
+        
+        e.preventDefault();
+        updateAiming(e);
+      }
+      
+      function updateAiming(e) {
+        const currentPoint = getSVGPoint(e);
+        const dx = currentPoint.x - gameState.startX;
+        const dy = currentPoint.y - gameState.startY;
+        
+        // Calculate angle (-45 to 45 degrees)
+        gameState.currentAngle = Math.max(-Math.PI/4, Math.min(Math.PI/4, dx / 200));
+        
+        // Calculate power based on vertical drag (pulling DOWN)
+        const pullDistance = Math.min(Math.max(0, dy), MAX_PULL_DISTANCE);
+        gameState.currentPower = pullDistance / MAX_PULL_DISTANCE;
+        
+        // Add bonus for pulling beyond certain point
+        if (pullDistance > MAX_PULL_DISTANCE * 0.8) {
+          gameState.currentPower = Math.min(1, gameState.currentPower * 1.2);
+        }
+        
+        updateVisuals();
+        updateTrajectoryPreview();
+      }
+      
+      function updateVisuals() {
+        // Update bow string tension
+        const tension = gameState.currentPower * 40;
+        gsap.to(elements.bowString, {
+          duration: 0.1,
+          attr: { x2: tension }
+        });
+        
+        // Update arrow position and rotation
+        const config = CONFIG.difficulties[gameState.difficulty];
+        const powerMultiplier = config.powerMultiplier;
+        const adjustedPower = gameState.currentPower * powerMultiplier;
+        
+        gsap.to(elements.currentArrow, {
+          duration: 0.1,
+          x: -tension,
+          rotation: gameState.currentAngle * 180 / Math.PI,
+          transformOrigin: '0 0'
+        });
+        
+        // Update power indicator
+        const powerPercent = adjustedPower * 100;
+        elements.powerFill.style.height = `${powerPercent}%`;
+        
+        // Change color based on power
+        if (powerPercent < 40) {
+          elements.powerFill.style.background = 'linear-gradient(to top, #00ff88, #66ffaa)';
+        } else if (powerPercent < 80) {
+          elements.powerFill.style.background = 'linear-gradient(to top, #ffcc00, #ffdd66)';
+        } else {
+          elements.powerFill.style.background = 'linear-gradient(to top, #ff416c, #ff6688)';
+        }
+      }
+      
+      function updateTrajectoryPreview() {
+        const config = CONFIG.difficulties[gameState.difficulty];
+        const points = calculateTrajectory(gameState.currentAngle, gameState.currentPower);
+        
+        if (points.length > 1) {
+          let pathData = `M${points[0].x},${points[0].y}`;
+          for (let i = 1; i < points.length; i++) {
+            pathData += ` L${points[i].x},${points[i].y}`;
+          }
+          elements.trajectoryLine.setAttribute('d', pathData);
+          
+          // Adjust opacity based on power
+          elements.trajectoryLine.style.opacity = 0.3 + (gameState.currentPower * 0.7);
+        }
+      }
+      
+      function calculateTrajectory(angle, power) {
+        const config = CONFIG.difficulties[gameState.difficulty];
+        const points = [];
+        
+        // Adjust power based on difficulty
+        const adjustedPower = power * config.powerMultiplier;
+        
+        // Initial conditions - SIGNIFICANTLY INCREASED POWER
+        let x = BOW_POSITION.x;
+        let y = BOW_POSITION.y;
+        let vx = Math.cos(angle) * adjustedPower * CONFIG.physics.basePower * 1.5; // 50% more power
+        let vy = Math.sin(angle) * adjustedPower * CONFIG.physics.basePower * 1.5; // 50% more power
+        
+        // Add wind effect
+        vx += gameState.wind;
+        
+        // Simulate trajectory with higher resolution
+        for (let i = 0; i < 120; i++) {
+          points.push({ x, y });
+          
+          // Apply physics
+          vy += config.gravity;
+          vx *= CONFIG.physics.drag;
+          vy *= CONFIG.physics.drag;
+          
+          // Update position
+          x += vx * CONFIG.physics.arrowSpeed;
+          y += vy * CONFIG.physics.arrowSpeed;
+          
+          // Stop conditions
+          if (x > 1000 || y > 500 || (y > 380 && i > 20)) {
+            break;
+          }
+        }
+        
+        return points;
+      }
+      
+      // ========== SHOOTING MECHANICS ==========
+      function releaseArrow(e) {
+        if (!gameState.isDragging) return;
+        
+        e.preventDefault();
+        gameState.isDragging = false;
+        
+        if (gameState.currentPower >= MIN_POWER_THRESHOLD) {
+          shootArrow();
+        } else {
+          // Not enough power - reset
+          gsap.to(elements.currentArrow, {
+            duration: 0.3,
+            x: 0,
+            rotation: 0,
+            onComplete: () => {
+              gameState.canShoot = true;
+              elements.trajectoryLine.style.opacity = '0';
+            }
+          });
+          
+          gsap.to(elements.bowString, {
+            duration: 0.3,
+            attr: { x2: 0 }
+          });
+        }
+      }
+      
+      function shootArrow() {
+        gameState.shots++;
+        
+        // Create new arrow
+        const arrow = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        arrow.innerHTML = `
+          <line x1="0" y1="0" x2="60" y2="0" stroke="#ffcc00" stroke-width="4" stroke-linecap="round"/>
+          <polygon points="60,-5 70,0 60,5" fill="#ffcc00"/>
+          <polygon points="0,-5 -5,0 0,5" fill="#ff416c"/>
+        `;
+        arrow.setAttribute('transform', `translate(${BOW_POSITION.x}, ${BOW_POSITION.y})`);
+        elements.flyingArrows.appendChild(arrow);
+        
+        // Calculate trajectory with difficulty-based randomness
+        const config = CONFIG.difficulties[gameState.difficulty];
+        const accuracy = config.accuracy;
+        
+        // Add randomness based on difficulty
+        const angleVariation = (1 - accuracy) * (Math.random() - 0.5) * 0.3;
+        const powerVariation = (1 - accuracy) * (Math.random() - 0.5) * 0.15;
+        
+        const finalAngle = gameState.currentAngle + angleVariation;
+        const finalPower = Math.min(1, gameState.currentPower * (1 + powerVariation));
+        
+        // Calculate final trajectory
+        const points = calculateTrajectory(finalAngle, finalPower);
+        
+        if (points.length < 2) {
+          resetAfterShot();
+          return;
+        }
+        
+        // Create animation keyframes
+        const keyframes = points.map((point, index) => ({
+          x: point.x - BOW_POSITION.x,
+          y: point.y - BOW_POSITION.y,
+          rotation: calculateArrowRotation(points, index),
+          ease: "none"
+        }));
+        
+        const duration = points.length * 0.008; // Faster animation
+        
+        // Animate arrow
+        gsap.to(arrow, {
+          duration: duration,
+          keyframes: keyframes,
+          onUpdate: function() {
+            checkCollision(arrow, points[Math.floor(this.progress() * points.length)]);
+          },
+          onComplete: function() {
+            // Arrow landed
+            setTimeout(() => {
+              arrow.remove();
+              resetAfterShot();
+            }, 1000);
+          }
+        });
+        
+        // Hide trajectory line and reset bow
+        elements.trajectoryLine.style.opacity = '0';
+        resetBow();
+        
+        // Update UI
+        updateUI();
+      }
+      
+      function calculateArrowRotation(points, index) {
+        if (index >= points.length - 1) return 0;
+        
+        const dx = points[index + 1].x - points[index].x;
+        const dy = points[index + 1].y - points[index].y;
+        return Math.atan2(dy, dx) * 180 / Math.PI;
+      }
+      
+      function checkCollision(arrow, currentPoint) {
+        if (!currentPoint) return;
+        
+        const dx = currentPoint.x - TARGET_POSITION.x;
+        const dy = currentPoint.y - TARGET_POSITION.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Check collision with target
+        if (distance <= CONFIG.scoring.outer.radius) {
+          gsap.killTweensOf(arrow);
+          handleHit(distance);
+          arrow.remove();
+          resetAfterShot();
+        }
+      }
+      
+      function handleHit(distance) {
+        let score = 0;
+        let color = '';
+        let message = '';
+        
+        if (distance <= CONFIG.scoring.bullseye.radius) {
+          score = CONFIG.scoring.bullseye.points;
+          color = CONFIG.scoring.bullseye.color;
+          message = 'BULLSEYE!';
+        } else if (distance <= CONFIG.scoring.inner.radius) {
+          score = CONFIG.scoring.inner.points;
+          color = CONFIG.scoring.inner.color;
+          message = 'GREAT SHOT!';
+        } else if (distance <= CONFIG.scoring.middle.radius) {
+          score = CONFIG.scoring.middle.points;
+          color = CONFIG.scoring.middle.color;
+          message = 'GOOD SHOT!';
+        } else if (distance <= CONFIG.scoring.outer.radius) {
+          score = CONFIG.scoring.outer.points;
+          color = CONFIG.scoring.outer.color;
+          message = 'HIT!';
+        }
+        
+        // Update game state
+        gameState.score += score;
+        gameState.hits++;
+        
+        if (gameState.score > gameState.bestScore) {
+          gameState.bestScore = gameState.score;
+          localStorage.setItem('archeryBestScore', gameState.bestScore);
+        }
+        
+        // Show hit effect
+        showHitEffect(score, color, message);
+        
+        // Update wind after hit
+        updateWind();
+        
+        // Update UI
+        updateUI();
+      }
+      
+      function showHitEffect(score, color, message) {
+        // Show hit circle
+        gsap.to(elements.hitEffects, {
+          opacity: 1,
+          duration: 0.3,
+          onComplete: function() {
+            gsap.to(elements.hitEffects, {
+              opacity: 0,
+              duration: 0.5,
+              delay: 0.5
+            });
+          }
+        });
+        
+        // Animate sparkles
+        gsap.fromTo('#sparkles circle', 
+          { scale: 0, opacity: 0 },
+          { 
+            scale: 1, 
+            opacity: 1, 
+            duration: 0.3, 
+            stagger: 0.1,
+            onComplete: function() {
+              gsap.to('#sparkles circle', {
+                scale: 0,
+                opacity: 0,
+                duration: 0.3,
+                delay: 0.2
+              });
+            }
+          }
+        );
+        
+        // Show score popup
+        const scoreDisplay = document.getElementById('score-display');
+        const scoreText = document.getElementById('score-text');
+        
+        scoreText.textContent = `+${score}`;
+        scoreText.setAttribute('fill', color);
+        
+        gsap.to(scoreDisplay, {
+          opacity: 1,
+          y: -20,
+          duration: 0.3,
+          onComplete: function() {
+            gsap.to(scoreDisplay, {
+              opacity: 0,
+              y: 0,
+              duration: 0.5,
+              delay: 1
+            });
+          }
+        });
+        
+        // Update hint message
+        elements.hint.textContent = message;
+        elements.hint.style.color = color;
+        setTimeout(() => {
+          elements.hint.textContent = gameState.isMobile 
+            ? 'Pull further down for more power!' 
+            : 'Pull further for more power!';
+          elements.hint.style.color = '#ffcc00';
+        }, 2000);
+      }
+      
+      // ========== GAME CONTROLS ==========
+      function resetBow() {
+        gsap.to(elements.bowString, {
+          duration: 0.3,
+          attr: { x2: 0 },
+          ease: "elastic.out(1, 0.3)"
+        });
+        
+        gsap.to(elements.currentArrow, {
+          duration: 0.3,
+          x: 0,
+          rotation: 0,
+          transformOrigin: '0 0'
+        });
+      }
+      
+      function resetAfterShot() {
+        setTimeout(() => {
+          gameState.canShoot = true;
+          elements.trajectoryLine.style.opacity = '0';
+        }, 500);
+      }
+      
+      function resetGame() {
+        if (confirm("Reset game? Current score will be lost.")) {
+          gameState.score = 0;
+          gameState.shots = 0;
+          gameState.hits = 0;
+          gameState.canShoot = true;
+          
+          // Clear flying arrows
+          elements.flyingArrows.innerHTML = '';
+          
+          // Reset visuals
+          resetBow();
+          elements.trajectoryLine.style.opacity = '0';
+          elements.trajectoryLine.setAttribute('d', '');
+          
+          // Update wind
+          updateWind();
+          
+          // Update UI
+          updateUI();
+        }
+      }
+      
+      function toggleDifficulty() {
+        const difficulties = ['easy', 'normal', 'hard'];
+        const currentIndex = difficulties.indexOf(gameState.difficulty);
+        const nextIndex = (currentIndex + 1) % difficulties.length;
+        gameState.difficulty = difficulties[nextIndex];
+        
+        const difficultyText = gameState.difficulty.charAt(0).toUpperCase() + gameState.difficulty.slice(1);
+        elements.difficultyLevel.textContent = difficultyText;
+        
+        // Update target position based on difficulty
+        updateTargetPosition();
+        
+        // Update button color based on difficulty
+        const colors = {
+          easy: '#00ff88',
+          normal: '#ffcc00',
+          hard: '#ff416c'
+        };
+        elements.difficultyBtn.style.background = `linear-gradient(135deg, ${colors[gameState.difficulty]}, ${colors[gameState.difficulty]}77)`;
+        
+        // Show difficulty info
+        const config = CONFIG.difficulties[gameState.difficulty];
+        elements.hint.textContent = `Difficulty: ${difficultyText} | Distance: ${config.targetDistance}m`;
+        elements.hint.style.color = colors[gameState.difficulty];
+        setTimeout(() => {
+          elements.hint.textContent = gameState.isMobile 
+            ? 'Pull further down for more power!' 
+            : 'Pull further for more power!';
+          elements.hint.style.color = '#ffcc00';
+        }, 3000);
+      }
+      
+      function updateTargetPosition() {
+        const config = CONFIG.difficulties[gameState.difficulty];
+        TARGET_POSITION.x = 50 + config.targetDistance;
+        
+        // Update target in SVG
+        const target = document.getElementById('target');
+        target.setAttribute('transform', `translate(${TARGET_POSITION.x}, 350)`);
+        
+        // Update target distance label
+        const distanceText = target.querySelector('text:nth-child(10)');
+        if (distanceText) {
+          distanceText.textContent = `${config.targetDistance}m`;
+        }
+        
+        // Update hit effects position
+        elements.hitEffects.setAttribute('transform', `translate(${TARGET_POSITION.x - 850}, 0)`);
+      }
+      
+      function updateWind() {
+        const config = CONFIG.difficulties[gameState.difficulty];
+        gameState.wind = (Math.random() - 0.5) * 4 * config.windMultiplier;
+        
+        elements.windValue.textContent = Math.abs(gameState.wind).toFixed(1);
+        
+        if (gameState.wind > 0.1) {
+          elements.windDirection.textContent = '→ Wind Right';
+          elements.windDirection.style.color = '#ff9966';
+        } else if (gameState.wind < -0.1) {
+          elements.windDirection.textContent = '← Wind Left';
+          elements.windDirection.style.color = '#ff9966';
+        } else {
+          elements.windDirection.textContent = '• No Wind';
+          elements.windDirection.style.color = '#00ff88';
+        }
+      }
+      
+      // ========== UI UPDATES ==========
+      function updateUI() {
+        elements.score.textContent = gameState.score;
+        elements.shots.textContent = gameState.shots;
+        elements.bestScore.textContent = gameState.bestScore;
+        
+        const accuracy = gameState.shots > 0 
+          ? ((gameState.hits / gameState.shots) * 100).toFixed(1)
+          : 0;
+        elements.accuracy.textContent = `${accuracy}%`;
+        
+        // Update accuracy color
+        const acc = parseFloat(accuracy);
+        if (acc >= 70) elements.accuracy.style.color = '#00ff88';
+        else if (acc >= 40) elements.accuracy.style.color = '#ffcc00';
+        else elements.accuracy.style.color = '#ff416c';
+      }
+      
+      // ========== UTILITY FUNCTIONS ==========
+      function getSVGPoint(e) {
+        const pt = elements.gameSvg.createSVGPoint();
+        pt.x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+        pt.y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+        return pt.matrixTransform(elements.gameSvg.getScreenCTM().inverse());
+      }
+      
+      function handleKeydown(e) {
+        if (e.key === 'Escape') {
+          goBackToLobby();
+        } else if (e.key === 'r' || e.key === 'R') {
+          resetGame();
+        } else if (e.key === 'd' || e.key === 'D') {
+          toggleDifficulty();
+        } else if (e.key === ' ') {
+          e.preventDefault();
+          if (gameState.canShoot && gameState.currentPower > MIN_POWER_THRESHOLD) {
+            shootArrow();
+          }
+        }
+      }
+      
+      function handleResize() {
+        // Update any responsive elements if needed
+      }
+      
+      // ========== BACK TO LOBBY ==========
+      function goBackToLobby() {
+        if (confirm("Return to game lobby? Your best score is saved.")) {
+          window.location.href = '../../index.html';
+        }
+      }
+      
+      // ========== INITIALIZE GAME ==========
+      // Add this to ensure proper mobile viewport handling
+      function setViewportHeight() {
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      }
+      
+      window.addEventListener('load', () => {
+        setViewportHeight();
+        initGame();
+      });
+      
+      window.addEventListener('resize', setViewportHeight);
+      
+      // Expose functions globally
+      window.resetGame = resetGame;
+      window.toggleDifficulty = toggleDifficulty;
+      window.goBackToLobby = goBackToLobby;
+    </script>
+  </body>
+</html>
